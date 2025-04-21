@@ -5,10 +5,10 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('welcome');
+    return redirect('saludo');
 })->name('home');
 
-Route::get('/saludo', [SaludoController::class,'saludo']);
+Route::get('/saludo', [SaludoController::class,'saludo']) -> name('saludo');
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
