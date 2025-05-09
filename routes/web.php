@@ -1,23 +1,29 @@
 <?php
 
-use App\Http\Controllers\SaludoController;
-use App\Http\Controllers\PerfumeController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\PerfumeController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return redirect('saludo');
+    return redirect()->route('login');
 })->name('home');
 
-Route::get('/saludo', [SaludoController::class,'saludo']) -> name('saludo');
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
-Route::resource('perfumes', PerfumeController::class);
+Route::get('/register', [LoginController::class, 'showRegisterForm'])->name('register');
+Route::post('/register', [LoginController::class, 'register'])->name('register.submit');
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 });
 
+Route::resource('perfumes', PerfumeController::class);
+
 require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+//require __DIR__.'/auth.php';
