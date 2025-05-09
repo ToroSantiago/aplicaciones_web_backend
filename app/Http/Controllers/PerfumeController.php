@@ -38,9 +38,9 @@ class PerfumeController extends Controller
             'genero' => 'required|in:M,F,U',
             'stock' => 'required|boolean',
         ]);
-
+    
         Perfume::create($data);
-        return redirect()->route('perfumes.index');
+        return redirect()->route('perfumes.index')->with('success', 'Perfume creado correctamente');
     }
 
     /**
@@ -48,7 +48,8 @@ class PerfumeController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $perfume = Perfume::findOrFail($id);
+        return view('mostrarPerfume', compact('perfume'));
     }
 
     /**
@@ -70,12 +71,13 @@ class PerfumeController extends Controller
             'marca' => 'required',
             'precio' => 'required|numeric',
             'descripcion' => 'nullable',
+            'volumen' => 'required',
             'genero' => 'required|in:M,F,U',
             'stock' => 'required|boolean',
         ]);
-
+    
         $perfume->update($data);
-        return redirect()->route('perfumes.index');
+        return redirect()->route('perfumes.index')->with('success', 'Perfume actualizado correctamente');
     }
 
     /**
@@ -84,6 +86,6 @@ class PerfumeController extends Controller
     public function destroy(Perfume $perfume)
     {
         $perfume->delete();
-        return redirect()->route('perfumes.index');
+        return redirect()->route('perfumes.index')->with('success', 'Perfume eliminado correctamente');
     }
 }
