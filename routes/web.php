@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\SaludoController;
 use App\Http\Controllers\PerfumeController;
+use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -12,6 +13,8 @@ Route::get('/', function () {
 Route::get('/saludo', [SaludoController::class,'saludo']) -> name('saludo');
 
 Route::resource('perfumes', PerfumeController::class);
+
+Route::resource('usuarios', UsuarioController::class);
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
