@@ -1,7 +1,7 @@
 # AplicacionesWeb
 * Blum, Ariel.
 * Castro Otero, Joaquín.
-* Toro, Santiago.
+* Toro, Santiago Cesar.
 
 # Título del Market
 
