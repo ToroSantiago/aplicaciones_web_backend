@@ -15,7 +15,7 @@
     "env": {
       "APP_ENV": "production",
       "APP_DEBUG": "false",
-      "APP_URL": "https://essenzaroyalebackend.vercel.app",
+      "APP_URL": "https://aplicacioneswebbackend-2txy0morr-torosantiagos-projects.vercel.app",
 
       "APP_CONFIG_CACHE": "/tmp/config.php",
       "APP_EVENTS_CACHE": "/tmp/events.php",
