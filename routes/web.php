@@ -23,7 +23,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::resource('perfumes', PerfumeController::class);
 Route::resource('usuarios', UsuarioController::class);
 
-// Rutas que usan Inertia específicamente
+
 Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('dashboard');
