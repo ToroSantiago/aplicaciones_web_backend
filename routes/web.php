@@ -29,9 +29,6 @@ Route::middleware(['web', 'auth'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
     
-    // Incluir settings.php que seguramente contiene rutas Inertia
+
     require __DIR__.'/settings.php';
 });
-
-// Rutas de autenticación de Breeze/Jetstream (si las usas)
-// require __DIR__.'/auth.php';
