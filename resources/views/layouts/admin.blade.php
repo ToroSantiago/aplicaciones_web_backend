@@ -145,9 +145,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-user me-1"></i>Administrador
-                        </a>
+                        @auth
+                            @if(Auth::user()->rol === 'Administrador')
+                                <a class="nav-link" href="#">
+                                    <i class="fas fa-user me-1"></i>{{ Auth::user()->nombre }} {{ Auth::user()->apellido }}
+                                </a>
+                            @endif
+                        @endauth
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/login">
@@ -178,11 +182,6 @@
                         <li class="nav-item">
                              <a class="sidebar-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
                                 <i class="fas fa-users me-2"></i>Usuarios
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="sidebar-link" href="#">
-                                <i class="fas fa-cog me-2"></i>Configuración
                             </a>
                         </li>
                     </ul>

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('marca');
             $table->string('descripcion');
             $table->integer('volumen');
-            $table->decimal('precio', 8, 2);
+            $table->integer('precio');
             $table->enum('genero', ['M','F','U'])->default('U');
             $table->boolean('stock')->default(true);
             $table->timestamps();

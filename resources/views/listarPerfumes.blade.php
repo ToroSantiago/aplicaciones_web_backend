@@ -53,7 +53,7 @@
                                     <td>{{ $perfume->nombre }}</td>
                                     <td>{{ $perfume->marca }}</td>
                                     <td>{{ $perfume->volumen }} ml</td>
-                                    <td>${{ number_format($perfume->precio / 100, 2) }}</td>
+                                    <td>${{ $perfume->precio }}</td>
                                     <td>
                                         @if($perfume->genero == 'M')
                                             <span class="badge gender-M">Masculino</span>
