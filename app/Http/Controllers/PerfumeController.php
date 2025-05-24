@@ -69,7 +69,7 @@ class PerfumeController extends Controller
         $data = $request->validate([
             'nombre' => 'required',
             'marca' => 'required',
-            'precio' => 'required|numeric',
+            'precio' => 'required',
             'descripcion' => 'nullable',
             'volumen' => 'required',
             'genero' => 'required|in:M,F,U',

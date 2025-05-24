@@ -73,7 +73,7 @@
                     <div class="col-md-4">
                         <label for="genero" class="form-label">Género:</label>
                         <select class="form-select @error('genero') is-invalid @enderror" 
-                                id="genero" name="genero" required>
+                            id="genero" name="genero" required>
                             <option value="M" {{ old('genero', $perfume->genero) == 'M' ? 'selected' : '' }}>Masculino</option>
                             <option value="F" {{ old('genero', $perfume->genero) == 'F' ? 'selected' : '' }}>Femenino</option>
                             <option value="U" {{ old('genero', $perfume->genero) == 'U' ? 'selected' : '' }}>Unisex</option>
