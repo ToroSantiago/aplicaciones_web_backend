@@ -33,3 +33,4 @@ Route::middleware('web')->group(function () {
         // Incluir settings.php que seguramente contiene rutas Inertia
         require __DIR__.'/settings.php';
     });
+});
