@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use App\Models\Usuario;
 
 class LoginController extends Controller
 {
@@ -39,20 +39,24 @@ class LoginController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email'],
+            'nombre' => ['required', 'string', 'max:255'],
+            'apellido' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:usuarios,email'],
             'password' => ['required', 'confirmed', 'min:6'],
         ]);
         
-        $user = User::create([
-            'name' => $request->name,
+        $usuario = Usuario::create([
+            'nombre' => $request->nombre,
+            'apellido' => $request->apellido,
+            'username' => $request->email,
             'email' => $request->email,
+            'genero' => $request->genero,
             'password' => Hash::make($request->password),
         ]);
         
-        Auth::login($user);
+        Auth::login($usuario);
         
-        return redirect()->route('dashboard');
+        return redirect('/login');
     }
     
     public function logout(Request $request)
