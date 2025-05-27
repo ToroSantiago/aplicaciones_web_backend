@@ -30,7 +30,6 @@ Route::middleware('web')->group(function () {
             return Inertia::render('dashboard');
         })->name('dashboard');
 
-        // Incluir settings.php que seguramente contiene rutas Inertia
         require __DIR__.'/settings.php';
     });
 });
