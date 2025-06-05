@@ -9,32 +9,23 @@ use Illuminate\Validation\Rules\Password;
 
 class UsuarioController extends Controller
 {
-    /**
-     * Mostrar listado de usuarios (solo para admin)
-     */
+    //Mostrar listado de usuarios (solo para admin)
     public function index()
     {
         $usuarios = Usuario::all();
         return view('usuarios.index', compact('usuarios'));
     }
 
-    /**
-     * Formulario para crear usuario
-     */
+    //Formulario para crear usuario
     public function create()
     {
         return view('usuarios.create');
     }
 
-    /**
-     * Guardar nuevo usuario
-     */
+    //Guardar nuevo usuario
     public function store(Request $request)
     {
         $data = $request->validate([
-            'username' => 'required|unique:usuarios,username|min:3|max:20',
-            'nombre' => 'required|string|max:255',
-            'apellido' => 'required|string|max:255',
             'email' => 'required|email|unique:usuarios,email',
             'password' => [
                 'required', 
@@ -45,36 +36,34 @@ class UsuarioController extends Controller
                     ->numbers()
                     ->symbols()
             ],
+            'nombre' => 'required|string|max:255',
+            'apellido' => 'required|string|max:255',
             'rol' => 'required|in:Cliente,Administrador',
-            'genero' => 'nullable|in:M,F,O',
         ]);
 
+        $data['username'] = $data['email']; 
         $data['password'] = Hash::make($data['password']);
-        
+
         Usuario::create($data);
 
         return redirect()->route('usuarios.index')->with('success', 'Usuario creado correctamente');
     }
 
-    /**
-     * Mostrar usuario específico
-     */
-    public function show(Usuario $usuario)
-    {
-        return view('usuarios.show', compact('usuario'));
+    //Mostrar usuario específico
+    public function show(string $id)
+    {   
+        $usuario = Usuario::findOrFail($id);
+        return view('mostrarUsuario', compact('usuario'));
     }
 
-    /**
-     * Formulario para editar usuario
-     */
-    public function edit(Usuario $usuario)
+    //Formulario para editar usuario
+    public function edit(string $id)
     {
-        return view('usuarios.edit', compact('usuario'));
+        $usuario = Usuario::findOrFail($id);
+        return view('editarUsuario', compact('usuario'));
     }
 
-    /**
-     * Actualizar usuario
-     */
+    //Actualizar usuario
     public function update(Request $request, Usuario $usuario)
     {
         $data = $request->validate([
@@ -83,7 +72,6 @@ class UsuarioController extends Controller
             'apellido' => 'required|string|max:255',
             'email' => 'required|email|unique:usuarios,email,'.$usuario->id,
             'rol' => 'required|in:Cliente,Administrador',
-            'genero' => 'nullable|in:M,F,O',
         ]);
 
         // Solo actualizar password si se proporcionó
@@ -104,12 +92,10 @@ class UsuarioController extends Controller
 
         $usuario->update($data);
         
-        return redirect()->route('usuarios.index')->with('success', 'Usuario actualizado correctamente');
+        return redirect()->route('modificarUsuario')->with('success', 'Usuario actualizado correctamente');
     }
 
-    /**
-     * Eliminar usuario
-     */
+    //Eliminar usuario
     public function destroy(Usuario $usuario)
     {
         // Evitar eliminar el propio usuario administrador
@@ -118,7 +104,6 @@ class UsuarioController extends Controller
         }
         
         $usuario->delete();
-        
         return redirect()->route('usuarios.index')->with('success', 'Usuario eliminado correctamente');
     }
 }

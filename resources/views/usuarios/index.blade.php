@@ -54,7 +54,7 @@
                                     <td>{{ $usuario->email }}</td>
                                     <td>
                                         @if($usuario->rol == 'Administrador')
-                                            <span class="badge bg-primary">Administrador</span>
+                                            <span class="badge bg-success">Administrador</span>
                                         @else
                                             <span class="badge bg-secondary">Cliente</span>
                                         @endif
@@ -63,22 +63,30 @@
                                         @if($usuario->email_verified_at)
                                             <span class="badge bg-success">Verificado</span>
                                         @else
-                                            <span class="badge bg-warning">Pendiente</span>
+                                            <span class="badge bg-danger">Pendiente</span>
                                         @endif
                                     </td>
                                     <td>
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <a href="{{ route('usuarios.show', $usuario->id) }}" class="btn btn-info" title="Ver detalles">
+                                        <div class="btn-group" role="group" aria-label="Acciones">
+                                            <a href="{{ route('usuarios.show', $usuario->id) }}" 
+                                               class="btn btn-sm btn-outline-info" 
+                                               title="Ver detalles">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('usuarios.edit', $usuario->id) }}" class="btn btn-primary" title="Editar">
+                                            <a href="{{ route('usuarios.edit', $usuario->id) }}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <form action="{{ route('usuarios.destroy', $usuario->id) }}" method="POST" class="d-inline">
+                                            <form action="{{ route('usuarios.destroy', $usuario->id) }}" 
+                                                  method="POST" 
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('¿Estás seguro de eliminar este usuario?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-danger" title="Eliminar" 
-                                                       onclick="return confirm('¿Estás seguro de eliminar este usuario?')">
+                                                <button type="submit" 
+                                                        class="btn btn-sm btn-outline-danger" 
+                                                        title="Eliminar">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
