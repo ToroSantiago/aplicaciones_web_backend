@@ -56,33 +56,41 @@
                                     <td>${{ $perfume->precio }}</td>
                                     <td>
                                         @if($perfume->genero == 'M')
-                                            <span class="badge gender-M">Masculino</span>
+                                            <span class="badge bg-primary">Masculino</span>
                                         @elseif($perfume->genero == 'F')
-                                            <span class="badge gender-F">Femenino</span>
+                                            <span class="badge bg-danger">Femenino</span>
                                         @else
-                                            <span class="badge gender-U">Unisex</span>
+                                            <span class="badge bg-info">Unisex</span>
                                         @endif
                                     </td>
                                     <td>
                                         @if($perfume->stock)
-                                            <span class="badge badge-stock">Disponible</span>
+                                            <span class="badge bg-success">Disponible</span>
                                         @else
-                                            <span class="badge badge-no-stock">Agotado</span>
+                                            <span class="badge bg-danger">Agotado</span>
                                         @endif
                                     </td>
                                     <td>
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <a href="{{ route('perfumes.show', $perfume->id) }}" class="btn btn-info" title="Ver detalles">
+                                        <div class="btn-group" role="group" aria-label="Acciones">
+                                            <a href="{{ route('perfumes.show', $perfume->id) }}" 
+                                               class="btn btn-sm btn-outline-info" 
+                                               title="Ver detalles">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('perfumes.edit', $perfume->id) }}" class="btn btn-primary" title="Editar">
+                                            <a href="{{ route('perfumes.edit', $perfume->id) }}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <form action="{{ route('perfumes.destroy', $perfume->id) }}" method="POST" class="d-inline">
+                                            <form action="{{ route('perfumes.destroy', $perfume->id) }}" 
+                                                  method="POST" 
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('¿Estás seguro de eliminar este perfume?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-danger" title="Eliminar" 
-                                                       onclick="return confirm('¿Estás seguro de eliminar este perfume?')">
+                                                <button type="submit" 
+                                                        class="btn btn-sm btn-outline-danger" 
+                                                        title="Eliminar">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>

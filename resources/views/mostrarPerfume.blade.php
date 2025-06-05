@@ -51,7 +51,7 @@
                         </tr>
                         <tr>
                             <th>Precio:</th>
-                            <td>${{ number_format($perfume->precio / 100, 2) }}</td>
+                            <td>${{($perfume->precio)}}</td>
                         </tr>
                         <tr>
                             <th>Género:</th>
