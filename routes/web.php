@@ -31,5 +31,5 @@ Route::middleware('web')->group(function () {
         })->name('dashboard');
 
         require __DIR__.'/settings.php';
-    });
+    }); 
 });

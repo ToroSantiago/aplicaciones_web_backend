@@ -147,9 +147,9 @@
                     <li class="nav-item">
                         @auth
                             @if(Auth::user()->rol === 'Administrador')
-                                <a class="nav-link" href="#">
+                                <span class="nav-link" style="cursor: default;">
                                     <i class="fas fa-user me-1"></i>{{ Auth::user()->nombre }} {{ Auth::user()->apellido }}
-                                </a>
+                                </span>
                             @endif
                         @endauth
                     </li>
