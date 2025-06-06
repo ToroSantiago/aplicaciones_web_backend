@@ -92,7 +92,7 @@ class UsuarioController extends Controller
 
         $usuario->update($data);
         
-        return redirect()->route('modificarUsuario')->with('success', 'Usuario actualizado correctamente');
+        return redirect()->route('usuarios.index')->with('success', 'Usuario actualizado correctamente');
     }
 
     //Eliminar usuario
