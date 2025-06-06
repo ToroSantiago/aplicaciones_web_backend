@@ -175,7 +175,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="sidebar-link" href="#">
+                        <a class="sidebar-link {{ request()->routeIs('estadisticas.*') ? 'active' : '' }}" href="{{ route('estadisticas.index') }}">
                                 <i class="fas fa-chart-bar me-2"></i>Estadísticas
                             </a>
                         </li>
