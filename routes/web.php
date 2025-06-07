@@ -5,6 +5,7 @@ use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use Inertia\Inertia;
+use App\Http\Controllers\EstadisticasController;
 
 Route::middleware('web')->group(function () {
 
@@ -23,6 +24,7 @@ Route::middleware('web')->group(function () {
     // Rutas de recursos con Blade
     Route::resource('perfumes', PerfumeController::class);
     Route::resource('usuarios', UsuarioController::class);
+    Route::resource('estadisticas', EstadisticasController::class);
 
     // Rutas protegidas por autenticación e Inertia
     Route::middleware('auth')->group(function () {
@@ -31,5 +33,5 @@ Route::middleware('web')->group(function () {
         })->name('dashboard');
 
         require __DIR__.'/settings.php';
-    });
+    }); 
 });

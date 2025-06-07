@@ -30,13 +30,14 @@ class PerfumeController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'nombre' => 'required',
-            'marca' => 'required',
-            'descripcion' => 'required',
-            'volumen' => 'required',
-            'precio' => 'required|integer',
+            'nombre' => 'required|string|max:255',
+            'marca' => 'required|string|max:255',
+            'descripcion' => 'required|string',
+            'volumen' => 'required|integer|min:1',
+            'precio' => 'required|integer|min:0',
             'genero' => 'required|in:M,F,U',
-            'stock' => 'required|boolean',
+            'stock' => 'required|integer|min:0',
+            'imagen_url' => 'nullable|url'
         ]);
     
         Perfume::create($data);
@@ -67,13 +68,14 @@ class PerfumeController extends Controller
     public function update(Request $request, Perfume $perfume)
     {
         $data = $request->validate([
-            'nombre' => 'required',
-            'marca' => 'required',
-            'precio' => 'required',
-            'descripcion' => 'nullable',
-            'volumen' => 'required',
+            'nombre' => 'required|string|max:255',
+            'marca' => 'required|string|max:255',
+            'descripcion' => 'nullable|string',
+            'volumen' => 'required|integer|min:1',
+            'precio' => 'required|integer|min:0',
             'genero' => 'required|in:M,F,U',
-            'stock' => 'required|boolean',
+            'stock' => 'required|integer|min:0',
+            'imagen_url' => 'nullable|url'
         ]);
     
         $perfume->update($data);

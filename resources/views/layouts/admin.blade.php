@@ -147,9 +147,9 @@
                     <li class="nav-item">
                         @auth
                             @if(Auth::user()->rol === 'Administrador')
-                                <a class="nav-link" href="#">
+                                <span class="nav-link" style="cursor: default;">
                                     <i class="fas fa-user me-1"></i>{{ Auth::user()->nombre }} {{ Auth::user()->apellido }}
-                                </a>
+                                </span>
                             @endif
                         @endauth
                     </li>
@@ -170,12 +170,12 @@
                 <div class="position-sticky">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="sidebar-link active" href="{{ route('perfumes.index') }}">
+                        <a class="sidebar-link {{ request()->routeIs('perfumes.*') ? 'active' : '' }}" href="{{ route('perfumes.index') }}">
                                 <i class="fas fa-spray-can me-2"></i>Perfumes
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="sidebar-link" href="#">
+                        <a class="sidebar-link {{ request()->routeIs('estadisticas.*') ? 'active' : '' }}" href="{{ route('estadisticas.index') }}">
                                 <i class="fas fa-chart-bar me-2"></i>Estadísticas
                             </a>
                         </li>
