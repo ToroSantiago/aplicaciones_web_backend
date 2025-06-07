@@ -49,28 +49,28 @@
                 </div>
                 
                 <div class="row mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label for="volumen" class="form-label">Volumen (ml):</label>
                         <input type="number" class="form-control @error('volumen') is-invalid @enderror" 
-                               id="volumen" name="volumen" value="{{ old('volumen', $perfume->volumen) }}" required>
+                               id="volumen" name="volumen" value="{{ old('volumen', $perfume->volumen) }}" min="1" required>
                         @error('volumen')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                     
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label for="precio" class="form-label">Precio:</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
                             <input type="number" class="form-control @error('precio') is-invalid @enderror" 
-                                   id="precio" name="precio" value="{{ old('precio', $perfume->precio) }}" required>
+                                   id="precio" name="precio" value="{{ old('precio', $perfume->precio) }}" min="0" required>
                             @error('precio')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
                     
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label for="genero" class="form-label">Género:</label>
                         <select class="form-select @error('genero') is-invalid @enderror" 
                             id="genero" name="genero" required>
@@ -82,15 +82,34 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+                    
+                    <div class="col-md-3">
+                        <label for="stock" class="form-label">Stock (unidades):</label>
+                        <input type="number" class="form-control @error('stock') is-invalid @enderror" 
+                               id="stock" name="stock" value="{{ old('stock', $perfume->stock) }}" min="0" required>
+                        @error('stock')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
                 
                 <div class="mb-4">
-                    <div class="form-check form-switch">
-                        <input type="hidden" name="stock" value="0">
-                        <input class="form-check-input" type="checkbox" role="switch" 
-                               id="stock" name="stock" value="1" {{ old('stock', $perfume->stock) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="stock">¿Hay stock disponible?</label>
-                    </div>
+                    <label for="imagen_url" class="form-label">URL de Imagen (Cloudinary):</label>
+                    <input type="url" class="form-control @error('imagen_url') is-invalid @enderror" 
+                           id="imagen_url" name="imagen_url" value="{{ old('imagen_url', $perfume->imagen_url) }}" 
+                           placeholder="https://res.cloudinary.com/...">
+                    <small class="text-muted">Opcional: URL de la imagen desde Cloudinary</small>
+                    @error('imagen_url')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    
+                    @if($perfume->imagen_url)
+                        <div class="mt-2">
+                            <p class="mb-1">Imagen actual:</p>
+                            <img src="{{ $perfume->imagen_url }}" alt="{{ $perfume->nombre }}" 
+                                 class="img-thumbnail" style="max-width: 200px;">
+                        </div>
+                    @endif
                 </div>
                 
                 <div class="d-flex justify-content-end gap-2">

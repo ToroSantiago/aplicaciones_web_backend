@@ -37,6 +37,7 @@
                         <thead>
                             <tr>
                                 <th scope="col">ID</th>
+                                <th scope="col">Imagen</th>
                                 <th scope="col">Nombre</th>
                                 <th scope="col">Marca</th>
                                 <th scope="col">Volumen</th>
@@ -50,10 +51,18 @@
                             @foreach ($perfumes as $perfume)
                                 <tr>
                                     <td>{{ $perfume->id }}</td>
+                                    <td>
+                                        @if($perfume->imagen_url)
+                                            <img src="{{ $perfume->imagen_url }}" alt="{{ $perfume->nombre }}" 
+                                                 class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                        @else
+                                            <span class="text-muted">Sin imagen</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $perfume->nombre }}</td>
                                     <td>{{ $perfume->marca }}</td>
                                     <td>{{ $perfume->volumen }} ml</td>
-                                    <td>${{ $perfume->precio }}</td>
+                                    <td>${{ number_format($perfume->precio, 0, ',', '.') }}</td>
                                     <td>
                                         @if($perfume->genero == 'M')
                                             <span class="badge bg-primary">Masculino</span>
@@ -64,8 +73,8 @@
                                         @endif
                                     </td>
                                     <td>
-                                        @if($perfume->stock)
-                                            <span class="badge bg-success">Disponible</span>
+                                        @if($perfume->stock > 0)
+                                            <span class="badge bg-success">{{ $perfume->stock }} unidades</span>
                                         @else
                                             <span class="badge bg-danger">Agotado</span>
                                         @endif

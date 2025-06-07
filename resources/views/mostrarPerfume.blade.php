@@ -16,11 +16,26 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
+                    <h5>Imagen del producto</h5>
+                    <div class="text-center">
+                        @if($perfume->imagen_url)
+                            <img src="{{ $perfume->imagen_url }}" alt="{{ $perfume->nombre }}" 
+                                 class="img-fluid rounded" style="max-height: 300px;">
+                        @else
+                            <div class="bg-light p-5 rounded">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                                <p class="text-muted mt-2">Sin imagen disponible</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
                     <h5>Datos básicos</h5>
                     <table class="table table-bordered">
                         <tr>
-                            <th style="width: 30%">Nombre:</th>
+                            <th style="width: 40%">Nombre:</th>
                             <td>{{ $perfume->nombre }}</td>
                         </tr>
                         <tr>
@@ -33,45 +48,57 @@
                         </tr>
                         <tr>
                             <th>Fecha de creación:</th>
-                            <td>{{ $perfume->created_at }}</td>
+                            <td>{{ $perfume->created_at->format('d/m/Y H:i') }}</td>
                         </tr>
                         <tr>
                             <th>Última actualización:</th>
-                            <td>{{ $perfume->updated_at }}</td>
+                            <td>{{ $perfume->updated_at->format('d/m/Y H:i') }}</td>
                         </tr>
                     </table>
                 </div>
                 
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <h5>Detalles del producto</h5>
                     <table class="table table-bordered">
                         <tr>
-                            <th style="width: 30%">Volumen:</th>
+                            <th style="width: 40%">Volumen:</th>
                             <td>{{ $perfume->volumen }} ml</td>
                         </tr>
                         <tr>
                             <th>Precio:</th>
-                            <td>${{($perfume->precio)}}</td>
+                            <td>${{ number_format($perfume->precio, 0, ',', '.') }}</td>
                         </tr>
                         <tr>
                             <th>Género:</th>
                             <td>
                                 @if($perfume->genero == 'M')
-                                    <span class="badge gender-M">Masculino</span>
+                                    <span class="badge bg-primary">Masculino</span>
                                 @elseif($perfume->genero == 'F')
-                                    <span class="badge gender-F">Femenino</span>
+                                    <span class="badge bg-danger">Femenino</span>
                                 @else
-                                    <span class="badge gender-U">Unisex</span>
+                                    <span class="badge bg-info">Unisex</span>
                                 @endif
                             </td>
                         </tr>
                         <tr>
                             <th>Stock:</th>
                             <td>
-                                @if($perfume->stock)
-                                    <span class="badge badge-stock">Disponible</span>
+                                @if($perfume->stock > 0)
+                                    <span class="badge bg-success">{{ $perfume->stock }} unidades disponibles</span>
                                 @else
-                                    <span class="badge badge-no-stock">Agotado</span>
+                                    <span class="badge bg-danger">Agotado</span>
+                                @endif
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Estado:</th>
+                            <td>
+                                @if($perfume->stock > 10)
+                                    <i class="fas fa-check-circle text-success"></i> Stock suficiente
+                                @elseif($perfume->stock > 0)
+                                    <i class="fas fa-exclamation-triangle text-warning"></i> Stock bajo
+                                @else
+                                    <i class="fas fa-times-circle text-danger"></i> Sin stock
                                 @endif
                             </td>
                         </tr>
