@@ -40,10 +40,10 @@
                                 <th scope="col">Imagen</th>
                                 <th scope="col">Nombre</th>
                                 <th scope="col">Marca</th>
-                                <th scope="col">Volumen</th>
-                                <th scope="col">Precio</th>
                                 <th scope="col">Género</th>
-                                <th scope="col">Stock</th>
+                                <th scope="col">Variantes</th>
+                                <th scope="col">Rango de Precios</th>
+                                <th scope="col">Stock Total</th>
                                 <th scope="col">Acciones</th>
                             </tr>
                         </thead>
@@ -61,8 +61,6 @@
                                     </td>
                                     <td>{{ $perfume->nombre }}</td>
                                     <td>{{ $perfume->marca }}</td>
-                                    <td>{{ $perfume->volumen }} ml</td>
-                                    <td>${{ number_format($perfume->precio, 0, ',', '.') }}</td>
                                     <td>
                                         @if($perfume->genero == 'M')
                                             <span class="badge bg-primary">Masculino</span>
@@ -73,8 +71,19 @@
                                         @endif
                                     </td>
                                     <td>
-                                        @if($perfume->stock > 0)
-                                            <span class="badge bg-success">{{ $perfume->stock }} unidades</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#variantesModal{{ $perfume->id }}">
+                                            <i class="fas fa-boxes me-1"></i>Ver variantes
+                                        </button>
+                                    </td>
+                                    <td>
+                                        ${{ number_format($perfume->precio_minimo, 2, ',', '.') }} - 
+                                        ${{ number_format($perfume->precio_maximo, 2, ',', '.') }}
+                                    </td>
+                                    <td>
+                                        @if($perfume->stock_total > 0)
+                                            <span class="badge bg-success">{{ $perfume->stock_total }} unidades</span>
                                         @else
                                             <span class="badge bg-danger">Agotado</span>
                                         @endif
@@ -110,7 +119,56 @@
                         </tbody>
                     </table>
                 </div>
-                <!-- Aquí iría la paginación -->
+                
+                <!-- Modales de variantes - FUERA de la tabla -->
+                @foreach($perfumes as $perfume)
+                    <div class="modal fade" id="variantesModal{{ $perfume->id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Variantes de {{ $perfume->nombre }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Volumen</th>
+                                                <th>Precio</th>
+                                                <th>Stock</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if($perfume->variantes && $perfume->variantes->count() > 0)
+                                                @foreach($perfume->variantes->sortBy('volumen') as $variante)
+                                                    <tr>
+                                                        <td>{{ $variante->volumen }} ml</td>
+                                                        <td>${{ number_format($variante->precio, 2, ',', '.') }}</td>
+                                                        <td>
+                                                            @if($variante->stock > 0)
+                                                                <span class="badge bg-success">{{ $variante->stock }} unidades</span>
+                                                            @else
+                                                                <span class="badge bg-danger">Agotado</span>
+                                                            @endif
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            @else
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted">
+                                                        No hay variantes disponibles
+                                                    </td>
+                                                </tr>
+                                            @endif
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+                <!-- Fin de modales -->
+                
             @endif
         </div>
         <div class="card-footer text-muted">

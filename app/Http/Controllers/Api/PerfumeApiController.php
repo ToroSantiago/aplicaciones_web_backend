@@ -1,21 +1,25 @@
 <?php
-
 namespace App\Http\Controllers\Api;
-
 use App\Http\Controllers\Controller;
 use App\Models\Perfume;
+use App\Models\PerfumeVariante;
 use Illuminate\Http\Request;
 
 class PerfumeApiController extends Controller
 {
     /**
-     * Listar perfumes (máximo 5 por defecto)
+     * Listar perfumes con sus variantes (máximo 5 por defecto)
      * GET /api/perfumes
      */
     public function index()
     {
         try {
-            $perfumes = Perfume::take(5)->get();
+            $perfumes = Perfume::with('variantes')->take(5)->get();
+            
+            // Agregar atributos calculados
+            $perfumes = $perfumes->map(function ($perfume) {
+                return $this->formatPerfumeWithVariantes($perfume);
+            });
             
             return response()->json([
                 'success' => true,
@@ -30,19 +34,19 @@ class PerfumeApiController extends Controller
             ], 500);
         }
     }
-
+    
     /**
-     * Mostrar un perfume específico
+     * Mostrar un perfume específico con sus variantes
      * GET /api/perfumes/{id}
      */
     public function show($id)
     {
         try {
-            $perfume = Perfume::findOrFail($id);
+            $perfume = Perfume::with('variantes')->findOrFail($id);
             
             return response()->json([
                 'success' => true,
-                'data' => $perfume,
+                'data' => $this->formatPerfumeWithVariantes($perfume),
                 'message' => 'Perfume obtenido correctamente'
             ], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -59,9 +63,9 @@ class PerfumeApiController extends Controller
             ], 500);
         }
     }
-
+    
     /**
-     * Crear un nuevo perfume
+     * Crear un nuevo perfume con variantes
      * POST /api/perfumes
      */
     public function store(Request $request)
@@ -71,18 +75,26 @@ class PerfumeApiController extends Controller
                 'nombre' => 'required|string|max:255',
                 'marca' => 'required|string|max:255',
                 'descripcion' => 'nullable|string',
-                'volumen' => 'required|integer|min:1',
-                'precio' => 'required|integer|min:0',
                 'genero' => 'required|in:M,F,U',
-                'stock' => 'required|integer|min:0',
-                'imagen_url' => 'nullable|url'
+                'imagen_url' => 'nullable|url',
+                'variantes' => 'required|array|min:1',
+                'variantes.*.volumen' => 'required|integer|in:75,100,200',
+                'variantes.*.precio' => 'required|numeric|min:0',
+                'variantes.*.stock' => 'required|integer|min:0'
             ]);
-
-            $perfume = Perfume::create($data);
-
+            
+            $perfumeData = $request->except('variantes');
+            $perfume = Perfume::create($perfumeData);
+            
+            foreach ($request->variantes as $variante) {
+                $perfume->variantes()->create($variante);
+            }
+            
+            $perfume->load('variantes');
+            
             return response()->json([
                 'success' => true,
-                'data' => $perfume,
+                'data' => $this->formatPerfumeWithVariantes($perfume),
                 'message' => 'Perfume creado correctamente'
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -99,32 +111,46 @@ class PerfumeApiController extends Controller
             ], 500);
         }
     }
-
+    
     /**
-     * Actualizar un perfume existente
+     * Actualizar un perfume existente con sus variantes
      * PUT /api/perfumes/{id}
      */
     public function update(Request $request, $id)
     {
         try {
             $perfume = Perfume::findOrFail($id);
-
+            
             $data = $request->validate([
                 'nombre' => 'required|string|max:255',
                 'marca' => 'required|string|max:255',
                 'descripcion' => 'nullable|string',
-                'volumen' => 'required|integer|min:1',
-                'precio' => 'required|integer|min:0',
                 'genero' => 'required|in:M,F,U',
-                'stock' => 'required|integer|min:0',
-                'imagen_url' => 'nullable|url'
+                'imagen_url' => 'nullable|url',
+                'variantes' => 'sometimes|array|min:1',
+                'variantes.*.volumen' => 'required_with:variantes|integer|in:75,100,200',
+                'variantes.*.precio' => 'required_with:variantes|numeric|min:0',
+                'variantes.*.stock' => 'required_with:variantes|integer|min:0'
             ]);
-
-            $perfume->update($data);
-
+            
+            $perfumeData = $request->except('variantes');
+            $perfume->update($perfumeData);
+            
+            // Si se enviaron variantes, actualizar
+            if ($request->has('variantes')) {
+                // Eliminar variantes existentes y crear nuevas
+                $perfume->variantes()->delete();
+                
+                foreach ($request->variantes as $variante) {
+                    $perfume->variantes()->create($variante);
+                }
+            }
+            
+            $perfume->load('variantes');
+            
             return response()->json([
                 'success' => true,
-                'data' => $perfume,
+                'data' => $this->formatPerfumeWithVariantes($perfume),
                 'message' => 'Perfume actualizado correctamente'
             ], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -147,9 +173,9 @@ class PerfumeApiController extends Controller
             ], 500);
         }
     }
-
+    
     /**
-     * Eliminar un perfume
+     * Eliminar un perfume (incluye sus variantes por cascade)
      * DELETE /api/perfumes/{id}
      */
     public function destroy($id)
@@ -157,7 +183,7 @@ class PerfumeApiController extends Controller
         try {
             $perfume = Perfume::findOrFail($id);
             $perfume->delete();
-
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Perfume eliminado correctamente',
@@ -177,7 +203,7 @@ class PerfumeApiController extends Controller
             ], 500);
         }
     }
-
+    
     /**
      * Obtener perfumes con paginación
      * GET /api/perfumes/paginated?page=1&per_page=10
@@ -186,11 +212,16 @@ class PerfumeApiController extends Controller
     {
         try {
             $perPage = $request->get('per_page', 10);
-            $perfumes = Perfume::paginate($perPage);
+            $perfumes = Perfume::with('variantes')->paginate($perPage);
+            
+            // Formatear los perfumes
+            $formattedPerfumes = $perfumes->getCollection()->map(function ($perfume) {
+                return $this->formatPerfumeWithVariantes($perfume);
+            });
             
             return response()->json([
                 'success' => true,
-                'data' => $perfumes->items(),
+                'data' => $formattedPerfumes,
                 'pagination' => [
                     'total' => $perfumes->total(),
                     'per_page' => $perfumes->perPage(),
@@ -209,7 +240,7 @@ class PerfumeApiController extends Controller
             ], 500);
         }
     }
-
+    
     /**
      * Filtrar perfumes por género
      * GET /api/perfumes/genero/{genero}
@@ -226,11 +257,15 @@ class PerfumeApiController extends Controller
                 ], 400);
             }
             
-            $perfumes = Perfume::where('genero', $generoUppercase)->get();
+            $perfumes = Perfume::with('variantes')->where('genero', $generoUppercase)->get();
+            
+            $formattedPerfumes = $perfumes->map(function ($perfume) {
+                return $this->formatPerfumeWithVariantes($perfume);
+            });
             
             return response()->json([
                 'success' => true,
-                'data' => $perfumes,
+                'data' => $formattedPerfumes,
                 'message' => 'Perfumes filtrados por género correctamente'
             ], 200);
         } catch (\Exception $e) {
@@ -241,7 +276,7 @@ class PerfumeApiController extends Controller
             ], 500);
         }
     }
-
+    
     /**
      * Obtener todos los perfumes (sin límite)
      * GET /api/perfumes/all
@@ -249,11 +284,15 @@ class PerfumeApiController extends Controller
     public function all()
     {
         try {
-            $perfumes = Perfume::all();
+            $perfumes = Perfume::with('variantes')->get();
+            
+            $formattedPerfumes = $perfumes->map(function ($perfume) {
+                return $this->formatPerfumeWithVariantes($perfume);
+            });
             
             return response()->json([
                 'success' => true,
-                'data' => $perfumes,
+                'data' => $formattedPerfumes,
                 'message' => 'Todos los perfumes obtenidos correctamente'
             ], 200);
         } catch (\Exception $e) {
@@ -263,5 +302,104 @@ class PerfumeApiController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+    
+    /**
+     * Obtener una variante específica
+     * GET /api/perfumes/{perfumeId}/variantes/{varianteId}
+     */
+    public function showVariante($perfumeId, $varianteId)
+    {
+        try {
+            $perfume = Perfume::findOrFail($perfumeId);
+            $variante = $perfume->variantes()->findOrFail($varianteId);
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'perfume' => $perfume->only(['id', 'nombre', 'marca', 'descripcion', 'genero', 'imagen_url']),
+                    'variante' => $variante
+                ],
+                'message' => 'Variante obtenida correctamente'
+            ], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Perfume o variante no encontrada',
+                'error' => 'No se encontró el recurso solicitado'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener la variante',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Actualizar stock de una variante específica
+     * PATCH /api/perfumes/{perfumeId}/variantes/{varianteId}/stock
+     */
+    public function updateStock(Request $request, $perfumeId, $varianteId)
+    {
+        try {
+            $data = $request->validate([
+                'stock' => 'required|integer|min:0'
+            ]);
+            
+            $perfume = Perfume::findOrFail($perfumeId);
+            $variante = $perfume->variantes()->findOrFail($varianteId);
+            
+            $variante->update(['stock' => $data['stock']]);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $variante,
+                'message' => 'Stock actualizado correctamente'
+            ], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Perfume o variante no encontrada',
+                'error' => 'No se encontró el recurso solicitado'
+            ], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar el stock',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Formatear perfume con sus variantes y atributos calculados
+     */
+    private function formatPerfumeWithVariantes($perfume)
+    {
+        $perfumeArray = $perfume->toArray();
+        
+        // Agregar atributos calculados
+        $perfumeArray['precio_minimo'] = $perfume->precio_minimo;
+        $perfumeArray['precio_maximo'] = $perfume->precio_maximo;
+        $perfumeArray['hay_stock'] = $perfume->hay_stock;
+        $perfumeArray['stock_total'] = $perfume->stock_total;
+        
+        // Para compatibilidad con el frontend actual, agregar precio y volumen del primer variante
+        if ($perfume->variantes->count() > 0) {
+            $primeraVariante = $perfume->variantes->first();
+            $perfumeArray['precio'] = $primeraVariante->precio;
+            $perfumeArray['volumen'] = $primeraVariante->volumen;
+            $perfumeArray['stock'] = $primeraVariante->stock;
+        }
+        
+        return $perfumeArray;
     }
 }

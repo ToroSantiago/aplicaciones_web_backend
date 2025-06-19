@@ -47,28 +47,6 @@
                             <td>{{ $perfume->descripcion }}</td>
                         </tr>
                         <tr>
-                            <th>Fecha de creación:</th>
-                            <td>{{ $perfume->created_at->format('d/m/Y H:i') }}</td>
-                        </tr>
-                        <tr>
-                            <th>Última actualización:</th>
-                            <td>{{ $perfume->updated_at->format('d/m/Y H:i') }}</td>
-                        </tr>
-                    </table>
-                </div>
-                
-                <div class="col-md-4">
-                    <h5>Detalles del producto</h5>
-                    <table class="table table-bordered">
-                        <tr>
-                            <th style="width: 40%">Volumen:</th>
-                            <td>{{ $perfume->volumen }} ml</td>
-                        </tr>
-                        <tr>
-                            <th>Precio:</th>
-                            <td>${{ number_format($perfume->precio, 0, ',', '.') }}</td>
-                        </tr>
-                        <tr>
                             <th>Género:</th>
                             <td>
                                 @if($perfume->genero == 'M')
@@ -81,27 +59,84 @@
                             </td>
                         </tr>
                         <tr>
-                            <th>Stock:</th>
+                            <th>Fecha de creación:</th>
+                            <td>{{ $perfume->created_at->format('d/m/Y H:i') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Última actualización:</th>
+                            <td>{{ $perfume->updated_at->format('d/m/Y H:i') }}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="col-md-4">
+                    <h5>Resumen de Inventario</h5>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th style="width: 40%">Precio mínimo:</th>
+                            <td>${{ number_format($perfume->precio_minimo, 2, ',', '.') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Precio máximo:</th>
+                            <td>${{ number_format($perfume->precio_maximo, 2, ',', '.') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Stock total:</th>
                             <td>
-                                @if($perfume->stock > 0)
-                                    <span class="badge bg-success">{{ $perfume->stock }} unidades disponibles</span>
+                                @if($perfume->stock_total > 0)
+                                    <span class="badge bg-success">{{ $perfume->stock_total }} unidades</span>
                                 @else
                                     <span class="badge bg-danger">Agotado</span>
                                 @endif
                             </td>
                         </tr>
                         <tr>
-                            <th>Estado:</th>
+                            <th>Estado general:</th>
                             <td>
-                                @if($perfume->stock > 10)
+                                @if($perfume->stock_total > 50)
                                     <i class="fas fa-check-circle text-success"></i> Stock suficiente
-                                @elseif($perfume->stock > 0)
+                                @elseif($perfume->stock_total > 0)
                                     <i class="fas fa-exclamation-triangle text-warning"></i> Stock bajo
                                 @else
                                     <i class="fas fa-times-circle text-danger"></i> Sin stock
                                 @endif
                             </td>
                         </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Sección de Variantes -->
+            <div class="mt-4">
+                <h5><i class="fas fa-boxes me-2"></i>Variantes del Perfume</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Volumen</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($perfume->variantes->sortBy('volumen') as $variante)
+                                <tr>
+                                    <td><strong>{{ $variante->volumen }} ml</strong></td>
+                                    <td>${{ number_format($variante->precio, 2, ',', '.') }}</td>
+                                    <td>{{ $variante->stock }} unidades</td>
+                                    <td>
+                                        @if($variante->stock > 10)
+                                            <span class="badge bg-success">Disponible</span>
+                                        @elseif($variante->stock > 0)
+                                            <span class="badge bg-warning">Stock bajo</span>
+                                        @else
+                                            <span class="badge bg-danger">Agotado</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
                     </table>
                 </div>
             </div>

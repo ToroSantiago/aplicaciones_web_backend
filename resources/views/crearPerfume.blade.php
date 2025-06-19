@@ -48,28 +48,7 @@
                 </div>
                 
                 <div class="row mb-3">
-                    <div class="col-md-3">
-                        <label for="volumen" class="form-label">Volumen (ml):</label>
-                        <input type="number" class="form-control @error('volumen') is-invalid @enderror" 
-                               id="volumen" name="volumen" value="{{ old('volumen') }}" min="1" required>
-                        @error('volumen')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <label for="precio" class="form-label">Precio:</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" class="form-control @error('precio') is-invalid @enderror" 
-                                   id="precio" name="precio" value="{{ old('precio') }}" min="0" required>
-                            @error('precio')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-3">
+                    <div class="col-md-6">
                         <label for="genero" class="form-label">Género:</label>
                         <select class="form-select @error('genero') is-invalid @enderror" 
                                 id="genero" name="genero" required>
@@ -83,25 +62,124 @@
                         @enderror
                     </div>
                     
-                    <div class="col-md-3">
-                        <label for="stock" class="form-label">Stock (unidades):</label>
-                        <input type="number" class="form-control @error('stock') is-invalid @enderror" 
-                               id="stock" name="stock" value="{{ old('stock', 0) }}" min="0" required>
-                        @error('stock')
+                    <div class="col-md-6">
+                        <label for="imagen_url" class="form-label">URL de Imagen (Cloudinary):</label>
+                        <input type="url" class="form-control @error('imagen_url') is-invalid @enderror" 
+                               id="imagen_url" name="imagen_url" value="{{ old('imagen_url') }}" 
+                               placeholder="https://res.cloudinary.com/...">
+                        <small class="text-muted">Opcional: URL de la imagen desde Cloudinary</small>
+                        @error('imagen_url')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
                 
-                <div class="mb-4">
-                    <label for="imagen_url" class="form-label">URL de Imagen (Cloudinary):</label>
-                    <input type="url" class="form-control @error('imagen_url') is-invalid @enderror" 
-                           id="imagen_url" name="imagen_url" value="{{ old('imagen_url') }}" 
-                           placeholder="https://res.cloudinary.com/...">
-                    <small class="text-muted">Opcional: URL de la imagen desde Cloudinary</small>
-                    @error('imagen_url')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                <!-- Sección de Variantes -->
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0"><i class="fas fa-boxes me-2"></i>Variantes del Perfume</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Tamaño</th>
+                                        <th>Precio ($)</th>
+                                        <th>Stock (unidades)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Variante 75ml -->
+                                    <tr>
+                                        <td>
+                                            <strong>75 ml</strong>
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control @error('variante_75_precio') is-invalid @enderror" 
+                                                   name="variante_75_precio" 
+                                                   value="{{ old('variante_75_precio', 0) }}" 
+                                                   min="0" 
+                                                   step="0.01" 
+                                                   required>
+                                            @error('variante_75_precio')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control @error('variante_75_stock') is-invalid @enderror" 
+                                                   name="variante_75_stock" 
+                                                   value="{{ old('variante_75_stock', 0) }}" 
+                                                   min="0" required>
+                                            @error('variante_75_stock')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Variante 100ml -->
+                                    <tr>
+                                        <td>
+                                            <strong>100 ml</strong>
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control @error('variante_100_precio') is-invalid @enderror" 
+                                                   name="variante_100_precio" 
+                                                   value="{{ old('variante_100_precio', 0) }}" 
+                                                   min="0" 
+                                                   step="0.01" 
+                                                   required>
+                                            @error('variante_100_precio')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control @error('variante_100_stock') is-invalid @enderror" 
+                                                   name="variante_100_stock" 
+                                                   value="{{ old('variante_100_stock', 0) }}" 
+                                                   min="0" required>
+                                            @error('variante_100_stock')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Variante 200ml -->
+                                    <tr>
+                                        <td>
+                                            <strong>200 ml</strong>
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control @error('variante_200_precio') is-invalid @enderror" 
+                                                   name="variante_200_precio" 
+                                                   value="{{ old('variante_200_precio', 0) }}" 
+                                                   min="0" 
+                                                   step="0.01" 
+                                                   required>
+                                            @error('variante_200_precio')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control @error('variante_200_stock') is-invalid @enderror" 
+                                                   name="variante_200_stock" 
+                                                   value="{{ old('variante_200_stock', 0) }}" 
+                                                   min="0" required>
+                                            @error('variante_200_stock')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="d-flex justify-content-end gap-2">
