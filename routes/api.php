@@ -19,4 +19,5 @@ Route::get('/{id}', [PerfumeApiController::class, 'show']); // Ver un perfume
 Route::post('/', [PerfumeApiController::class, 'store']); // Crear perfume
 Route::put('/{id}', [PerfumeApiController::class, 'update']); // Actualizar perfume
 Route::delete('/{id}', [PerfumeApiController::class, 'destroy']); // Eliminar perfume
-
+Route::post('/compra', [PerfumeApiController::class, 'compra']); // Comprar perfumes
+// /{id}/compra

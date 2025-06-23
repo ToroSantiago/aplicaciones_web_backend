@@ -402,4 +402,43 @@ class PerfumeApiController extends Controller
         
         return $perfumeArray;
     }
+
+    /**
+     * Compra perfumes desde React y descuenta el stock
+    */
+
+    public function compra(Request $request)
+    {
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|integer|exists:perfume_variantes,id',
+            'items.*.cantidad' => 'required|integer|min:1',
+        ]);
+    
+        $response = [];
+    
+        foreach ($request->items as $item) {
+            $variante = PerfumeVariante::find($item['id']);
+    
+            if ($variante->stock < $item['cantidad']) {
+                return response()->json([
+                    'message' => "Stock insuficiente para la variante ID {$item['id']} (volumen: {$variante->volumen}ml)",
+                ], 400);
+            }
+    
+            $variante->stock -= $item['cantidad'];
+            $variante->save();
+    
+            $response[] = [
+                'variante_id' => $variante->id,
+                'volumen' => $variante->volumen,
+                'stock_actual' => $variante->stock,
+            ];
+        }
+    
+        return response()->json([
+            'message' => 'Compra realizada con éxito',
+            'items' => $response,
+        ]);
+    }
 }
