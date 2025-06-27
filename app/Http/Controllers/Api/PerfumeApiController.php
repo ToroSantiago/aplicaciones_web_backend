@@ -411,18 +411,27 @@ class PerfumeApiController extends Controller
     {
         $request->validate([
             'items' => 'required|array',
-            'items.*.id' => 'required|integer|exists:perfume_variantes,id',
+            'items.*.id' => 'required|integer', // este es el perfume_id
+            'items.*.volumen' => 'required|integer|in:75,100,200',
             'items.*.cantidad' => 'required|integer|min:1',
         ]);
     
         $response = [];
     
         foreach ($request->items as $item) {
-            $variante = PerfumeVariante::find($item['id']);
+            $variante = PerfumeVariante::where('perfume_id', $item['id'])
+                                       ->where('volumen', $item['volumen'])
+                                       ->first();
+    
+            if (!$variante) {
+                return response()->json([
+                    'message' => "No se encontró la variante de volumen {$item['volumen']}ml para el perfume ID {$item['id']}",
+                ], 404);
+            }
     
             if ($variante->stock < $item['cantidad']) {
                 return response()->json([
-                    'message' => "Stock insuficiente para la variante ID {$item['id']} (volumen: {$variante->volumen}ml)",
+                    'message' => "Stock insuficiente para el perfume ID {$item['id']} - volumen: {$item['volumen']}ml",
                 ], 400);
             }
     
@@ -430,8 +439,8 @@ class PerfumeApiController extends Controller
             $variante->save();
     
             $response[] = [
-                'variante_id' => $variante->id,
-                'volumen' => $variante->volumen,
+                'perfume_id' => $item['id'],
+                'volumen' => $item['volumen'],
                 'stock_actual' => $variante->stock,
             ];
         }
@@ -440,5 +449,5 @@ class PerfumeApiController extends Controller
             'message' => 'Compra realizada con éxito',
             'items' => $response,
         ]);
-    }
+    }    
 }
