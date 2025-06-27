@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PerfumeApiController;
+use App\Http\Controllers\Api\VentaApiController;
 
 // Rutas específicas PRIMERO
 Route::get('/all', [PerfumeApiController::class, 'all']); // Lista todos
@@ -20,4 +21,12 @@ Route::get('/', [PerfumeApiController::class, 'index']); // Lista 5 perfumes
 Route::get('/{id}', [PerfumeApiController::class, 'show'])->where('id', '[0-9]+'); // Ver un perfume
 Route::post('/', [PerfumeApiController::class, 'store']); // Crear perfume
 Route::put('/{id}', [PerfumeApiController::class, 'update'])->where('id', '[0-9]+'); // Actualizar perfume
-Route::delete('/{id}', [PerfumeApiController::class, 'destroy'])->where('id', '[0-9]+'); // Eliminar perfume
+Route::delete('/{id}', [PerfumeApiController::class, 'destroy'])->where('id', '[0-9]+'); // Eliminar perfume
+
+// NUEVAS RUTAS DE VENTAS
+Route::post('/ventas', [VentaApiController::class, 'store']); // Crear venta
+Route::get('/ventas/cliente/{email}', [VentaApiController::class, 'ventasPorCliente']); // Historial por cliente
+Route::get('/ventas/{id}', [VentaApiController::class, 'show'])->where('id', '[0-9]+'); // Ver detalle de venta
+
+// Mantener compatibilidad con el endpoint existente de compra
+Route::post('/perfumes/compra', [VentaApiController::class, 'compraLegacy']);

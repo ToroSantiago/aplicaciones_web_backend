@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PerfumeController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\VentaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use Inertia\Inertia;
@@ -25,6 +26,12 @@ Route::middleware('web')->group(function () {
     Route::resource('perfumes', PerfumeController::class);
     Route::resource('usuarios', UsuarioController::class);
     Route::resource('estadisticas', EstadisticasController::class);
+
+    // NUEVAS RUTAS DE VENTAS
+    // IMPORTANTE: La ruta de estadísticas debe ir ANTES del resource
+    Route::get('ventas/estadisticas', [VentaController::class, 'estadisticas'])->name('ventas.estadisticas');
+    Route::resource('ventas', VentaController::class)->only(['index', 'show']);
+    Route::patch('ventas/{venta}/status', [VentaController::class, 'updateStatus'])->name('ventas.updateStatus');
 
     // Rutas protegidas por autenticación e Inertia
     Route::middleware('auth')->group(function () {

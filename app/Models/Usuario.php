@@ -46,4 +46,33 @@ class Usuario extends Authenticatable
     {
         return $this->rol === 'Administrador';
     }
+
+
+        /**
+     * Relación con las ventas del usuario
+     */
+    public function ventas()
+    {
+        return $this->hasMany(Venta::class);
+    }
+
+    /**
+     * Accesor para obtener el total gastado por el cliente
+     */
+    public function getTotalGastadoAttribute()
+    {
+        return $this->ventas()
+                    ->where('estado', 'completada')
+                    ->sum('total');
+    }
+
+    /**
+     * Accesor para obtener la cantidad de compras realizadas
+     */
+    public function getCantidadComprasAttribute()
+    {
+        return $this->ventas()
+                    ->where('estado', 'completada')
+                    ->count();
+    }
 }
