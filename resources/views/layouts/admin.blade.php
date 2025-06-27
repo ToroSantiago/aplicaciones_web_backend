@@ -175,13 +175,18 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                        <a class="sidebar-link {{ request()->routeIs('estadisticas.*') ? 'active' : '' }}" href="{{ route('estadisticas.index') }}">
-                                <i class="fas fa-chart-bar me-2"></i>Estadísticas
+                             <a class="sidebar-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
+                                <i class="fas fa-users me-2"></i>Usuarios
                             </a>
                         </li>
                         <li class="nav-item">
-                             <a class="sidebar-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
-                                <i class="fas fa-users me-2"></i>Usuarios
+                             <a class="sidebar-link {{ request()->routeIs('ventas.*') ? 'active' : '' }}" href="{{ route('ventas.index') }}">
+                                <i class="fas fa-shopping-cart me-2"></i>Ventas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="sidebar-link {{ request()->routeIs('estadisticas.*') ? 'active' : '' }}" href="{{ route('estadisticas.index') }}">
+                                <i class="fas fa-chart-bar me-2"></i>Estadísticas
                             </a>
                         </li>
                     </ul>

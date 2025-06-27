@@ -5,9 +5,6 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h2"><i class="fas fa-shopping-cart me-2"></i>Gestión de Ventas</h1>
-        <a href="{{ route('ventas.estadisticas') }}" class="btn btn-info">
-            <i class="fas fa-chart-line me-2"></i>Ver Estadísticas
-        </a>
     </div>
 
     <!-- Filtros -->
