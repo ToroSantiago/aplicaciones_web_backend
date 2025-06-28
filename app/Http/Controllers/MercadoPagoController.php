@@ -41,7 +41,6 @@ class MercadoPagoController extends Controller
 
             Log::info('Payload enviado a MP: ' . json_encode($requestData));
 
-            // Crear la preferencia
             $client = new PreferenceClient();
             $preference = $client->create($requestData);
 
