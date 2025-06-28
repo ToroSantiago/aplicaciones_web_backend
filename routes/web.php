@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use Inertia\Inertia;
 use App\Http\Controllers\EstadisticasController;
+use App\Http\Controllers\MercadoPagoController;
+
 
 Route::middleware('web')->group(function () {
 
@@ -26,6 +28,9 @@ Route::middleware('web')->group(function () {
     Route::resource('perfumes', PerfumeController::class);
     Route::resource('usuarios', UsuarioController::class);
     Route::resource('estadisticas', EstadisticasController::class);
+
+    Route::get('/mercadopago/success', [MercadoPagoController::class, 'success'])->name('mercadopago.success');
+    Route::get('/mercadopago/failed', [MercadoPagoController::class, 'failed'])->name('mercadopago.failed');
 
     // NUEVAS RUTAS DE VENTAS
     // IMPORTANTE: La ruta de estadísticas debe ir ANTES del resource

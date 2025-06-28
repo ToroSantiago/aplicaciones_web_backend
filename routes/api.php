@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PerfumeApiController;
 use App\Http\Controllers\Api\VentaApiController;
+use App\Http\Controllers\MercadoPagoController;
 
 // Rutas específicas PRIMERO
 Route::get('/all', [PerfumeApiController::class, 'all']); // Lista todos
@@ -30,3 +31,6 @@ Route::get('/ventas/{id}', [VentaApiController::class, 'show'])->where('id', '[0
 
 // Mantener compatibilidad con el endpoint existente de compra
 Route::post('/perfumes/compra', [VentaApiController::class, 'compraLegacy']);
+
+// Ruta de integración con Mercado Pago
+Route::post('/checkout', [MercadoPagoController::class, 'createPaymentPreference']);
