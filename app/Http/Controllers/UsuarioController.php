@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\Usuario;
 use Illuminate\Validation\Rules\Password;
 
-class UsuarioApiController extends Controller
+class UsuarioController extends Controller
 {
     public function register(Request $request)
     {
