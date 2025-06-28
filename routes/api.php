@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PerfumeApiController;
 use App\Http\Controllers\Api\VentaApiController;
 use App\Http\Controllers\MercadoPagoController;
+use App\Http\Controllers\Api\UsuarioApiController;
 
 // Rutas específicas PRIMERO
 Route::get('/all', [PerfumeApiController::class, 'all']); // Lista todos
@@ -34,3 +35,13 @@ Route::post('/perfumes/compra', [VentaApiController::class, 'compraLegacy']);
 
 // Ruta de integración con Mercado Pago
 Route::post('/checkout', [MercadoPagoController::class, 'createPaymentPreference']);
+
+// Rutas de autenticación (públicas)
+Route::post('/register', [UsuarioApiController::class, 'register']);
+Route::post('/login', [UsuarioApiController::class, 'login']);
+
+// Rutas protegidas con autenticación
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [UsuarioApiController::class, 'logout']);
+    Route::get('/user', [UsuarioApiController::class, 'me']);
+});
