@@ -13,7 +13,8 @@ class MercadoPagoController extends Controller
 {
     public function createPaymentPreference(Request $request)
     {
-        Log::info('Creando preferencia de pago');
+        Log::info('=== INICIO CREACIÓN PREFERENCIA DE PAGO ===');
+
         $this->authenticate();
         Log::info('Autenticado con éxito');
 
@@ -37,7 +38,7 @@ class MercadoPagoController extends Controller
             // Crear la solicitud de preferencia
             $requestData = $this->createPreferenceRequest($items, $payer);
 
-            Log::info('Payload enviado a MP', $requestData);
+            Log::info('Payload enviado a MP: ' . json_encode($requestData));
 
             // Crear la preferencia
             $client = new PreferenceClient();
@@ -57,7 +58,8 @@ class MercadoPagoController extends Controller
                 'details' => $e->errors()
             ], 422);
         } catch (MPApiException $error) {
-            Log::error('Error de MercadoPago API: ' . $error->getMessage());
+            Log::error('Error de MercadoPago API (message): ' . $error->getMessage());
+            Log::error('Error de MercadoPago API (response): ' . json_encode($error->getApiResponse()->getContent()));
             return response()->json([
                 'success' => false,
                 'error' => 'Error en la API de MercadoPago',
@@ -75,7 +77,7 @@ class MercadoPagoController extends Controller
 
     public function success(Request $request)
     {
-        Log::info('Pago exitoso', $request->all());
+        Log::info('Pago exitoso: ' . json_encode($request->all()));
 
         return view('mercadopago.success', [
             'payment_id' => $request->get('payment_id'),
@@ -86,7 +88,7 @@ class MercadoPagoController extends Controller
 
     public function failed(Request $request)
     {
-        Log::info('Pago fallido', $request->all());
+        Log::info('Pago fallido: ' . json_encode($request->all()));
 
         return view('mercadopago.failed', [
             'payment_id' => $request->get('payment_id'),
@@ -97,7 +99,7 @@ class MercadoPagoController extends Controller
 
     public function webhook(Request $request)
     {
-        Log::info('Webhook recibido', $request->all());
+        Log::info('Webhook recibido: ' . json_encode($request->all()));
 
         // Procesar notificaciones de MercadoPago
         // Aquí es donde actualizarías el estado de la orden
