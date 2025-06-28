@@ -14,15 +14,16 @@ class MercadoPagoController extends Controller
     public function createPaymentPreference(Request $request)
     {
         Log::info('=== INICIO CREACIÓN PREFERENCIA DE PAGO ===');
-
-        $this->authenticate();
-        Log::info('Autenticado con éxito');
+        Log::info('Request recibido: ' . json_encode($request->all()));
 
         try {
+            // Configurar MercadoPago
+            $this->authenticate();
+            Log::info('Autenticado con éxito');
+
             // Validar datos del request
             $request->validate([
                 'items' => 'required|array|min:1',
-                'items.*.id' => 'required',
                 'items.*.title' => 'required|string',
                 'items.*.quantity' => 'required|integer|min:1',
                 'items.*.unit_price' => 'required|numeric|min:0',
@@ -44,6 +45,8 @@ class MercadoPagoController extends Controller
             $client = new PreferenceClient();
             $preference = $client->create($requestData);
 
+            Log::info('Preferencia creada exitosamente: ' . $preference->id);
+
             return response()->json([
                 'success' => true,
                 'id' => $preference->id,
@@ -52,21 +55,25 @@ class MercadoPagoController extends Controller
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Error de validación: ' . json_encode($e->errors()));
             return response()->json([
                 'success' => false,
                 'error' => 'Datos de validación incorrectos',
                 'details' => $e->errors()
             ], 422);
         } catch (MPApiException $error) {
-            Log::error('Error de MercadoPago API (message): ' . $error->getMessage());
-            Log::error('Error de MercadoPago API (response): ' . json_encode($error->getApiResponse()->getContent()));
+            Log::error('Error de MercadoPago API: ' . $error->getMessage());
+            if ($error->getApiResponse()) {
+                Log::error('Respuesta API: ' . json_encode($error->getApiResponse()->getContent()));
+            }
             return response()->json([
                 'success' => false,
                 'error' => 'Error en la API de MercadoPago',
-                'details' => $error->getApiResponse()->getContent(),
+                'details' => $error->getMessage(),
             ], 500);
         } catch (Exception $e) {
             Log::error('Error general: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json([
                 'success' => false,
                 'error' => 'Error interno del servidor',
@@ -79,30 +86,26 @@ class MercadoPagoController extends Controller
     {
         Log::info('Pago exitoso: ' . json_encode($request->all()));
 
-        return view('mercadopago.success', [
-            'payment_id' => $request->get('payment_id'),
-            'status' => $request->get('status'),
-            'external_reference' => $request->get('external_reference'),
-        ]);
+        // Aquí puedes redirigir al frontend con los parámetros
+        $frontendUrl = env('MP_SUCCESS_URL', 'https://essenzaroyalefrontend.vercel.app/success');
+        return redirect($frontendUrl . '?' . http_build_query($request->all()));
     }
 
     public function failed(Request $request)
     {
         Log::info('Pago fallido: ' . json_encode($request->all()));
 
-        return view('mercadopago.failed', [
-            'payment_id' => $request->get('payment_id'),
-            'status' => $request->get('status'),
-            'external_reference' => $request->get('external_reference'),
-        ]);
+        // Aquí puedes redirigir al frontend con los parámetros
+        $frontendUrl = env('MP_FAILURE_URL', 'https://essenzaroyalefrontend.vercel.app/failed');
+        return redirect($frontendUrl . '?' . http_build_query($request->all()));
     }
 
     public function webhook(Request $request)
     {
         Log::info('Webhook recibido: ' . json_encode($request->all()));
 
-        // Procesar notificaciones de MercadoPago
-        // Aquí es donde actualizarías el estado de la orden
+        // Aquí procesarías las notificaciones de MercadoPago
+        // Por ejemplo, actualizar el estado de la orden en tu base de datos
 
         return response()->json(['status' => 'ok']);
     }
@@ -114,37 +117,57 @@ class MercadoPagoController extends Controller
         if (!$mpAccessToken) {
             throw new Exception("El token de acceso de Mercado Pago no está configurado.");
         }
+        
+        // Configurar el SDK v3
         MercadoPagoConfig::setAccessToken($mpAccessToken);
+        
+        // Opcional: configurar entorno (sandbox/production)
+        // MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
+        
+        Log::info('Token configurado correctamente');
     }
 
     // Función para crear la estructura de preferencia
     protected function createPreferenceRequest($items, $payer): array
     {
-        foreach ($items as &$item) {
-            unset($item['id']);
-            $item['currency_id'] = 'ARS';
+        // Preparar items con el formato correcto
+        $formattedItems = [];
+        foreach ($items as $item) {
+            $formattedItems[] = [
+                'title' => $item['title'],
+                'quantity' => (int) $item['quantity'],
+                'unit_price' => (float) $item['unit_price'],
+                'currency_id' => 'ARS', // Moneda Argentina
+            ];
         }
 
+        // Configurar métodos de pago
         $paymentMethods = [
             "excluded_payment_methods" => [],
+            "excluded_payment_types" => [],
             "installments" => 12,
-            "default_installments" => 1
         ];
 
-        // Usar URLs configuradas en el .env
+        // URLs de retorno
         $backUrls = [
             'success' => config('services.mercadopago.success_url'),
-            'failure' => config('services.mercadopago.failure_url')
+            'failure' => config('services.mercadopago.failure_url'),
+            'pending' => config('services.mercadopago.failure_url'), // Opcional
         ];
 
+        // Referencia externa única
         $externalReference = 'ORDER_' . time() . '_' . uniqid();
 
         return [
-            "items" => $items,
-            "payer" => $payer,
+            "items" => $formattedItems,
+            "payer" => [
+                "name" => $payer['name'],
+                "surname" => $payer['surname'],
+                "email" => $payer['email'],
+            ],
             "payment_methods" => $paymentMethods,
             "back_urls" => $backUrls,
-            "statement_descriptor" => "TIENDAONLINE",
+            "statement_descriptor" => "ESSENZA ROYALE",
             "external_reference" => $externalReference,
             "expires" => false,
             "auto_return" => 'approved',
