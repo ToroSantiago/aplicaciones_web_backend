@@ -141,20 +141,24 @@
                 </div>
             </div>
             
-            <div class="d-flex justify-content-end mt-4 gap-2">
-                <a href="{{ route('perfumes.edit', $perfume->id) }}" class="btn btn-primary">
-                    <i class="fas fa-edit me-1"></i>Editar
-                </a>
-                
-                <form action="{{ route('perfumes.destroy', $perfume->id) }}" method="POST">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger" 
-                           onclick="return confirm('¿Estás seguro de eliminar este perfume?')">
-                        <i class="fas fa-trash me-1"></i>Eliminar
-                    </button>
-                </form>
-            </div>
+            @auth
+                @if(Auth::user()->isAdmin())
+                    <div class="d-flex justify-content-end mt-4 gap-2">
+                        <a href="{{ route('perfumes.edit', $perfume->id) }}" class="btn btn-primary">
+                            <i class="fas fa-edit me-1"></i>Editar
+                        </a>
+
+                        <form action="{{ route('perfumes.destroy', $perfume->id) }}" method="POST">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger"
+                                   onclick="return confirm('¿Estás seguro de eliminar este perfume?')">
+                                <i class="fas fa-trash me-1"></i>Eliminar
+                            </button>
+                        </form>
+                    </div>
+                @endif
+            @endauth
         </div>
     </div>
 @endsection

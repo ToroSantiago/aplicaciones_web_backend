@@ -117,60 +117,64 @@
                                     <td>{{ ucfirst($venta->metodo_pago ?? 'N/A') }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="{{ route('ventas.show', $venta->id) }}" 
-                                               class="btn btn-sm btn-outline-info" 
+                                            <a href="{{ route('ventas.show', $venta->id) }}"
+                                               class="btn btn-sm btn-outline-info"
                                                title="Ver detalles">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-outline-primary dropdown-toggle" 
-                                                    data-bs-toggle="dropdown" 
-                                                    aria-expanded="false"
-                                                    title="Cambiar estado">
-                                                <i class="fas fa-exchange-alt"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                @if($venta->estado != 'completada')
-                                                    <li>
-                                                        <form action="{{ route('ventas.updateStatus', $venta->id) }}" 
-                                                              method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('PATCH')
-                                                            <input type="hidden" name="estado" value="completada">
-                                                            <button type="submit" class="dropdown-item">
-                                                                <i class="fas fa-check text-success me-2"></i>Completar
-                                                            </button>
-                                                        </form>
-                                                    </li>
+                                            @auth
+                                                @if(Auth::user()->isAdmin())
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-primary dropdown-toggle"
+                                                            data-bs-toggle="dropdown"
+                                                            aria-expanded="false"
+                                                            title="Cambiar estado">
+                                                        <i class="fas fa-exchange-alt"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        @if($venta->estado != 'completada')
+                                                            <li>
+                                                                <form action="{{ route('ventas.updateStatus', $venta->id) }}"
+                                                                      method="POST" class="d-inline">
+                                                                    @csrf
+                                                                    @method('PATCH')
+                                                                    <input type="hidden" name="estado" value="completada">
+                                                                    <button type="submit" class="dropdown-item">
+                                                                        <i class="fas fa-check text-success me-2"></i>Completar
+                                                                    </button>
+                                                                </form>
+                                                            </li>
+                                                        @endif
+                                                        @if($venta->estado != 'pendiente')
+                                                            <li>
+                                                                <form action="{{ route('ventas.updateStatus', $venta->id) }}"
+                                                                      method="POST" class="d-inline">
+                                                                    @csrf
+                                                                    @method('PATCH')
+                                                                    <input type="hidden" name="estado" value="pendiente">
+                                                                    <button type="submit" class="dropdown-item">
+                                                                        <i class="fas fa-clock text-warning me-2"></i>Pendiente
+                                                                    </button>
+                                                                </form>
+                                                            </li>
+                                                        @endif
+                                                        @if($venta->estado != 'cancelada')
+                                                            <li>
+                                                                <form action="{{ route('ventas.updateStatus', $venta->id) }}"
+                                                                      method="POST" class="d-inline"
+                                                                      onsubmit="return confirm('¿Cancelar esta venta? Se devolverá el stock.')">
+                                                                    @csrf
+                                                                    @method('PATCH')
+                                                                    <input type="hidden" name="estado" value="cancelada">
+                                                                    <button type="submit" class="dropdown-item">
+                                                                        <i class="fas fa-times text-danger me-2"></i>Cancelar
+                                                                    </button>
+                                                                </form>
+                                                            </li>
+                                                        @endif
+                                                    </ul>
                                                 @endif
-                                                @if($venta->estado != 'pendiente')
-                                                    <li>
-                                                        <form action="{{ route('ventas.updateStatus', $venta->id) }}" 
-                                                              method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('PATCH')
-                                                            <input type="hidden" name="estado" value="pendiente">
-                                                            <button type="submit" class="dropdown-item">
-                                                                <i class="fas fa-clock text-warning me-2"></i>Pendiente
-                                                            </button>
-                                                        </form>
-                                                    </li>
-                                                @endif
-                                                @if($venta->estado != 'cancelada')
-                                                    <li>
-                                                        <form action="{{ route('ventas.updateStatus', $venta->id) }}" 
-                                                              method="POST" class="d-inline"
-                                                              onsubmit="return confirm('¿Cancelar esta venta? Se devolverá el stock.')">
-                                                            @csrf
-                                                            @method('PATCH')
-                                                            <input type="hidden" name="estado" value="cancelada">
-                                                            <button type="submit" class="dropdown-item">
-                                                                <i class="fas fa-times text-danger me-2"></i>Cancelar
-                                                            </button>
-                                                        </form>
-                                                    </li>
-                                                @endif
-                                            </ul>
+                                            @endauth
                                         </div>
                                     </td>
                                 </tr>

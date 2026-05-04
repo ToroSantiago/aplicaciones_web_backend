@@ -25,38 +25,61 @@ class LoginController extends Controller
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
-        
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            return redirect()->intended('perfumes');
+
+        if (! Auth::attempt($credentials)) {
+            return back()->withErrors([
+                'email' => 'Las credenciales no son válidas.',
+            ])->onlyInput('email');
         }
-        
-        return back()->withErrors([
-            'email' => 'Las credenciales no son válidas.',
-        ])->onlyInput('email');
+
+        $usuario = Auth::user();
+
+        // Bloquear a los Clientes del backoffice: el panel Blade es solo para empleados/admins.
+        if (! $usuario->canAccessBackoffice()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()->withErrors([
+                'email' => 'Esta cuenta no tiene permisos para acceder al backoffice.',
+            ])->onlyInput('email');
+        }
+
+        $request->session()->regenerate();
+
+        // Redirigir según el rol: admin al ABM de perfumes, empleado a estadísticas.
+        $destino = $usuario->isAdmin()
+            ? route('perfumes.index')
+            : route('ventas.estadisticas');
+
+        return redirect()->intended($destino);
     }
-    
+
     public function register(Request $request)
     {
-        $request->validate([
-            'nombre' => ['required', 'string', 'max:255'],
+        $data = $request->validate([
+            'nombre'   => ['required', 'string', 'max:255'],
             'apellido' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:usuarios,email'],
+            'email'    => ['required', 'email', 'unique:usuarios,email'],
+            'genero'   => ['nullable', 'in:M,F,O'],
             'password' => ['required', 'confirmed', 'min:6'],
         ]);
-        
+
         $usuario = Usuario::create([
-            'nombre' => $request->nombre,
-            'apellido' => $request->apellido,
-            'username' => $request->email,
-            'email' => $request->email,
-            'genero' => $request->genero,
-            'password' => Hash::make($request->password),
+            'nombre'   => $data['nombre'],
+            'apellido' => $data['apellido'],
+            'username' => $data['email'],
+            'email'    => $data['email'],
+            'genero'   => $data['genero'] ?? null,
+            'password' => Hash::make($data['password']),
+            // Forzamos siempre el rol básico: nadie se vuelve admin solo por registrarse.
+            'rol'      => Usuario::ROL_EMPLEADO,
         ]);
-        
+
         Auth::login($usuario);
-        
-        return redirect('/login');
+
+        return redirect()->route('ventas.estadisticas')
+            ->with('success', 'Cuenta creada. Hablá con un administrador si necesitás más permisos.');
     }
     
     public function logout(Request $request)

@@ -146,17 +146,25 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         @auth
-                            @if(Auth::user()->rol === 'Administrador')
-                                <span class="nav-link" style="cursor: default;">
-                                    <i class="fas fa-user me-1"></i>{{ Auth::user()->nombre }} {{ Auth::user()->apellido }}
-                                </span>
-                            @endif
+                            <span class="nav-link" style="cursor: default;">
+                                <i class="fas fa-user me-1"></i>{{ Auth::user()->nombre }} {{ Auth::user()->apellido }}
+                                <span class="badge bg-secondary ms-1">{{ Auth::user()->rol }}</span>
+                            </span>
                         @endauth
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/login">
-                            <i class="fas fa-sign-out-alt me-1"></i>Cerrar sesión
-                        </a>
+                        @auth
+                            <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                                @csrf
+                                <button type="submit" class="nav-link btn btn-link" style="text-decoration: none;">
+                                    <i class="fas fa-sign-out-alt me-1"></i>Cerrar sesión
+                                </button>
+                            </form>
+                        @else
+                            <a class="nav-link" href="{{ route('login') }}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Iniciar sesión
+                            </a>
+                        @endauth
                     </li>
                 </ul>
             </div>
@@ -169,26 +177,32 @@
             <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
                 <div class="position-sticky">
                     <ul class="nav flex-column">
-                        <li class="nav-item">
-                        <a class="sidebar-link {{ request()->routeIs('perfumes.*') ? 'active' : '' }}" href="{{ route('perfumes.index') }}">
-                                <i class="fas fa-spray-can me-2"></i>Perfumes
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                             <a class="sidebar-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
-                                <i class="fas fa-users me-2"></i>Usuarios
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                             <a class="sidebar-link {{ request()->routeIs('ventas.*') ? 'active' : '' }}" href="{{ route('ventas.index') }}">
-                                <i class="fas fa-shopping-cart me-2"></i>Ventas
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                        <a class="sidebar-link {{ request()->routeIs('estadisticas.*') ? 'active' : '' }}" href="{{ route('estadisticas.index') }}">
-                                <i class="fas fa-chart-bar me-2"></i>Estadísticas
-                            </a>
-                        </li>
+                        @auth
+                            <li class="nav-item">
+                                <a class="sidebar-link {{ request()->routeIs('ventas.estadisticas') ? 'active' : '' }}" href="{{ route('ventas.estadisticas') }}">
+                                    <i class="fas fa-chart-line me-2"></i>Estadísticas
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="sidebar-link {{ request()->routeIs('perfumes.*') ? 'active' : '' }}" href="{{ route('perfumes.index') }}">
+                                    <i class="fas fa-spray-can me-2"></i>Perfumes
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="sidebar-link {{ request()->routeIs('ventas.index') || request()->routeIs('ventas.show') ? 'active' : '' }}" href="{{ route('ventas.index') }}">
+                                    <i class="fas fa-shopping-cart me-2"></i>Ventas
+                                </a>
+                            </li>
+
+                            {{-- Solo administradores ven el módulo de usuarios --}}
+                            @if(Auth::user()->isAdmin())
+                                <li class="nav-item">
+                                    <a class="sidebar-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
+                                        <i class="fas fa-users me-2"></i>Usuarios
+                                    </a>
+                                </li>
+                            @endif
+                        @endauth
                     </ul>
                 </div>
             </div>
@@ -198,6 +212,13 @@
                 @if (session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
+                @if (session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ session('error') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif

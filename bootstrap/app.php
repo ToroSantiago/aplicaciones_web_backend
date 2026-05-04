@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureUserCanAccessBackoffice;
+use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -22,6 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+        ]);
+
+        $middleware->alias([
+            'admin' => EnsureUserIsAdmin::class,
+            'backoffice' => EnsureUserCanAccessBackoffice::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

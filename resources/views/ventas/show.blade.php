@@ -55,42 +55,46 @@
                         <p class="text-muted">{{ $venta->observaciones }}</p>
                     @endif
 
-                    <!-- Acciones -->
-                    <hr>
-                    <h6>Cambiar Estado:</h6>
-                    <div class="btn-group d-flex" role="group">
-                        @if($venta->estado != 'completada')
-                            <form action="{{ route('ventas.updateStatus', $venta->id) }}" method="POST" class="flex-fill">
-                                @csrf
-                                @method('PATCH')
-                                <input type="hidden" name="estado" value="completada">
-                                <button type="submit" class="btn btn-success btn-sm w-100">
-                                    <i class="fas fa-check"></i> Completar
-                                </button>
-                            </form>
+                    @auth
+                        @if(Auth::user()->isAdmin())
+                            <!-- Acciones (solo admin) -->
+                            <hr>
+                            <h6>Cambiar Estado:</h6>
+                            <div class="btn-group d-flex" role="group">
+                                @if($venta->estado != 'completada')
+                                    <form action="{{ route('ventas.updateStatus', $venta->id) }}" method="POST" class="flex-fill">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="estado" value="completada">
+                                        <button type="submit" class="btn btn-success btn-sm w-100">
+                                            <i class="fas fa-check"></i> Completar
+                                        </button>
+                                    </form>
+                                @endif
+                                @if($venta->estado != 'pendiente')
+                                    <form action="{{ route('ventas.updateStatus', $venta->id) }}" method="POST" class="flex-fill">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="estado" value="pendiente">
+                                        <button type="submit" class="btn btn-warning btn-sm w-100">
+                                            <i class="fas fa-clock"></i> Pendiente
+                                        </button>
+                                    </form>
+                                @endif
+                                @if($venta->estado != 'cancelada')
+                                    <form action="{{ route('ventas.updateStatus', $venta->id) }}" method="POST" class="flex-fill"
+                                          onsubmit="return confirm('¿Está seguro de cancelar esta venta? Se devolverá el stock.')">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="estado" value="cancelada">
+                                        <button type="submit" class="btn btn-danger btn-sm w-100">
+                                            <i class="fas fa-times"></i> Cancelar
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         @endif
-                        @if($venta->estado != 'pendiente')
-                            <form action="{{ route('ventas.updateStatus', $venta->id) }}" method="POST" class="flex-fill">
-                                @csrf
-                                @method('PATCH')
-                                <input type="hidden" name="estado" value="pendiente">
-                                <button type="submit" class="btn btn-warning btn-sm w-100">
-                                    <i class="fas fa-clock"></i> Pendiente
-                                </button>
-                            </form>
-                        @endif
-                        @if($venta->estado != 'cancelada')
-                            <form action="{{ route('ventas.updateStatus', $venta->id) }}" method="POST" class="flex-fill"
-                                  onsubmit="return confirm('¿Está seguro de cancelar esta venta? Se devolverá el stock.')">
-                                @csrf
-                                @method('PATCH')
-                                <input type="hidden" name="estado" value="cancelada">
-                                <button type="submit" class="btn btn-danger btn-sm w-100">
-                                    <i class="fas fa-times"></i> Cancelar
-                                </button>
-                            </form>
-                        @endif
-                    </div>
+                    @endauth
                 </div>
             </div>
         </div>

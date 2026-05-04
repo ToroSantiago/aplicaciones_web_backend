@@ -24,19 +24,56 @@ Route::middleware('web')->group(function () {
     Route::post('/register', [LoginController::class, 'register'])->name('register.submit');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Rutas de recursos con Blade
-    Route::resource('perfumes', PerfumeController::class);
-    Route::resource('usuarios', UsuarioController::class);
-    Route::resource('estadisticas', EstadisticasController::class);
-
+    // Callbacks de MercadoPago: públicos (los invoca MP, no un usuario logueado).
     Route::get('/mercadopago/success', [MercadoPagoController::class, 'success'])->name('mercadopago.success');
     Route::get('/mercadopago/failed', [MercadoPagoController::class, 'failed'])->name('mercadopago.failed');
 
-    // NUEVAS RUTAS DE VENTAS
-    // IMPORTANTE: La ruta de estadísticas debe ir ANTES del resource
-    Route::get('ventas/estadisticas', [VentaController::class, 'estadisticas'])->name('ventas.estadisticas');
-    Route::resource('ventas', VentaController::class)->only(['index', 'show']);
-    Route::patch('ventas/{venta}/status', [VentaController::class, 'updateStatus'])->name('ventas.updateStatus');
+    /*
+    |--------------------------------------------------------------------------
+    | Backoffice
+    |--------------------------------------------------------------------------
+    | Acceso para Empleados y Administradores (los Cliente quedan bloqueados
+    | en el login y por el middleware 'backoffice').
+    |
+    | - Lectura (index/show, estadísticas) → 'backoffice'
+    | - Escritura (create/store/edit/update/destroy, cambios de estado, ABM
+    |   de usuarios) → 'admin'
+    */
+    Route::middleware(['auth', 'backoffice'])->group(function () {
+        // Perfumes: lectura
+        Route::get('perfumes', [PerfumeController::class, 'index'])->name('perfumes.index');
+        Route::get('perfumes/{perfume}', [PerfumeController::class, 'show'])
+            ->whereNumber('perfume')
+            ->name('perfumes.show');
+
+        // Ventas: lectura + estadísticas
+        Route::get('ventas/estadisticas', [VentaController::class, 'estadisticas'])
+            ->name('ventas.estadisticas');
+        Route::get('ventas', [VentaController::class, 'index'])->name('ventas.index');
+        Route::get('ventas/{venta}', [VentaController::class, 'show'])
+            ->whereNumber('venta')
+            ->name('ventas.show');
+    });
+
+    Route::middleware(['auth', 'admin'])->group(function () {
+        // Perfumes: escritura
+        Route::get('perfumes/create', [PerfumeController::class, 'create'])->name('perfumes.create');
+        Route::post('perfumes', [PerfumeController::class, 'store'])->name('perfumes.store');
+        Route::get('perfumes/{perfume}/edit', [PerfumeController::class, 'edit'])->name('perfumes.edit');
+        Route::put('perfumes/{perfume}', [PerfumeController::class, 'update'])->name('perfumes.update');
+        Route::patch('perfumes/{perfume}', [PerfumeController::class, 'update']);
+        Route::delete('perfumes/{perfume}', [PerfumeController::class, 'destroy'])->name('perfumes.destroy');
+
+        // Ventas: cambios de estado
+        Route::patch('ventas/{venta}/status', [VentaController::class, 'updateStatus'])
+            ->name('ventas.updateStatus');
+
+        // ABM de usuarios (incluye asignar/quitar el rol Administrador)
+        Route::resource('usuarios', UsuarioController::class);
+
+        // Estadísticas (placeholder — el módulo real está en VentaController::estadisticas)
+        Route::resource('estadisticas', EstadisticasController::class);
+    });
 
     // Rutas protegidas por autenticación e Inertia
     Route::middleware('auth')->group(function () {

@@ -28,8 +28,8 @@ class UsuarioController extends Controller
         $data = $request->validate([
             'email' => 'required|email|unique:usuarios,email',
             'password' => [
-                'required', 
-                'confirmed', 
+                'required',
+                'confirmed',
                 Password::min(8)
                     ->mixedCase()
                     ->letters()
@@ -38,10 +38,10 @@ class UsuarioController extends Controller
             ],
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
-            'rol' => 'required|in:Cliente,Administrador',
+            'rol' => 'required|in:Cliente,Empleado,Administrador',
         ]);
 
-        $data['username'] = $data['email']; 
+        $data['username'] = $data['email'];
         $data['password'] = Hash::make($data['password']);
 
         Usuario::create($data);
@@ -71,8 +71,20 @@ class UsuarioController extends Controller
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
             'email' => 'required|email|unique:usuarios,email,'.$usuario->id,
-            'rol' => 'required|in:Cliente,Administrador',
+            'rol' => 'required|in:Cliente,Empleado,Administrador',
         ]);
+
+        // Un administrador no puede quitarse a sí mismo el rol de admin
+        // (evita quedarse sin ningún admin por accidente).
+        if (
+            auth()->id() === $usuario->id
+            && $usuario->isAdmin()
+            && $data['rol'] !== Usuario::ROL_ADMIN
+        ) {
+            return back()
+                ->withInput()
+                ->with('error', 'No podés quitarte a vos mismo el rol de Administrador.');
+        }
 
         // Solo actualizar password si se proporcionó
         if ($request->filled('password')) {

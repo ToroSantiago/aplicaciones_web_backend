@@ -42,10 +42,32 @@ class Usuario extends Authenticatable
         'password',
     ];
 
+    /** Roles válidos del sistema. */
+    public const ROL_CLIENTE = 'Cliente';
+    public const ROL_EMPLEADO = 'Empleado';
+    public const ROL_ADMIN = 'Administrador';
+
+    public const ROLES_BACKOFFICE = [self::ROL_EMPLEADO, self::ROL_ADMIN];
+
     //Verifica si el usuario es administrador
-    public function isAdmin()
+    public function isAdmin(): bool
     {
-        return $this->rol === 'Administrador';
+        return $this->rol === self::ROL_ADMIN;
+    }
+
+    /** Verifica si el usuario es empleado (rol básico de backoffice). */
+    public function isEmpleado(): bool
+    {
+        return $this->rol === self::ROL_EMPLEADO;
+    }
+
+    /**
+     * Indica si el usuario puede acceder al backoffice (panel Blade).
+     * Los 'Cliente' (compradores del SPA) quedan excluidos.
+     */
+    public function canAccessBackoffice(): bool
+    {
+        return in_array($this->rol, self::ROLES_BACKOFFICE, true);
     }
 
 

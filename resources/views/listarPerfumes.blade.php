@@ -5,9 +5,13 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h2"><i class="fas fa-spray-can me-2"></i>Gestión de Perfumes</h1>
-        <a href="{{ route('perfumes.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Nuevo Perfume
-        </a>
+        @auth
+            @if(Auth::user()->isAdmin())
+                <a href="{{ route('perfumes.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Nuevo Perfume
+                </a>
+            @endif
+        @endauth
     </div>
 
     <div class="card">
@@ -95,23 +99,27 @@
                                                title="Ver detalles">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('perfumes.edit', $perfume->id) }}" 
-                                               class="btn btn-sm btn-outline-primary" 
-                                               title="Editar">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form action="{{ route('perfumes.destroy', $perfume->id) }}" 
-                                                  method="POST" 
-                                                  class="d-inline"
-                                                  onsubmit="return confirm('¿Estás seguro de eliminar este perfume?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" 
-                                                        class="btn btn-sm btn-outline-danger" 
-                                                        title="Eliminar">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                            @auth
+                                                @if(Auth::user()->isAdmin())
+                                                    <a href="{{ route('perfumes.edit', $perfume->id) }}"
+                                                       class="btn btn-sm btn-outline-primary"
+                                                       title="Editar">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <form action="{{ route('perfumes.destroy', $perfume->id) }}"
+                                                          method="POST"
+                                                          class="d-inline"
+                                                          onsubmit="return confirm('¿Estás seguro de eliminar este perfume?')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-outline-danger"
+                                                                title="Eliminar">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            @endauth
                                         </div>
                                     </td>
                                 </tr>
