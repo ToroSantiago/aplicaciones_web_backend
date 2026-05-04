@@ -122,4 +122,35 @@
                     @if($clientesTop->isEmpty())
                         <p class="text-muted">No hay datos disponibles para el período seleccionado.</p>
                     @else
-                        <div class="table-responsive"></div>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Email</th>
+                                        <th>Compras</th>
+                                        <th>Total Gastado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($clientesTop as $cliente)
+                                        <tr>
+                                            <td>
+                                                <strong>{{ $cliente->nombre }} {{ $cliente->apellido }}</strong>
+                                            </td>
+                                            <td><small class="text-muted">{{ $cliente->email }}</small></td>
+                                            <td>
+                                                <span class="badge bg-info">{{ $cliente->cantidad_compras }}</span>
+                                            </td>
+                                            <td>${{ number_format($cliente->total_gastado, 2, ',', '.') }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
