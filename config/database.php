@@ -94,7 +94,9 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => 'prefer',
+            // En Neon (prod) se requiere SSL: setear DB_SSLMODE=require en
+            // las env vars de Vercel. En local sqlite/postgres queda 'prefer'.
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
         'sqlsrv' => [
