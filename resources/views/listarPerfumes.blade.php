@@ -106,18 +106,64 @@
                                                        title="Editar">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <form action="{{ route('perfumes.destroy', $perfume->id) }}"
-                                                          method="POST"
-                                                          class="d-inline"
-                                                          onsubmit="return confirm('¿Estás seguro de eliminar este perfume?')">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit"
-                                                                class="btn btn-sm btn-outline-danger"
-                                                                title="Eliminar">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </form>
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-danger"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#deletePerfumeModal{{ $perfume->id }}"
+                                                            title="Eliminar">
+
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                    <div class="modal fade"
+                                                        id="deletePerfumeModal{{ $perfume->id }}"
+                                                        tabindex="-1"
+                                                        aria-hidden="true">
+
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title">
+                                                                        Confirmar eliminación
+                                                                    </h5>
+
+                                                                    <button type="button"
+                                                                            class="btn-close"
+                                                                            data-bs-dismiss="modal">
+                                                                    </button>
+                                                                </div>
+
+                                                                <div class="modal-body">
+                                                                    ¿Seguro que querés eliminar el perfume
+                                                                    <strong>{{ $perfume->nombre }}</strong>?
+                                                                </div>
+
+                                                                <div class="modal-footer">
+
+                                                                    <button type="button"
+                                                                            class="btn btn-secondary"
+                                                                            data-bs-dismiss="modal">
+                                                                        Cancelar
+                                                                    </button>
+
+                                                                    <form action="{{ route('perfumes.destroy', $perfume->id) }}"
+                                                                        method="POST">
+
+                                                                        @csrf
+                                                                        @method('DELETE')
+
+                                                                        <button type="submit"
+                                                                                class="btn btn-danger">
+                                                                            Eliminar
+                                                                        </button>
+
+                                                                    </form>
+
+                                                                </div>
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 @endif
                                             @endauth
                                         </div>
