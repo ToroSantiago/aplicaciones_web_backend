@@ -55,6 +55,8 @@
                                     <td>
                                         @if($usuario->rol == 'Administrador')
                                             <span class="badge bg-success">Administrador</span>
+                                        @elseif($usuario->rol == 'Empleado')
+                                            <span class="badge bg-primary">Empleado</span>
                                         @else
                                             <span class="badge bg-secondary">Cliente</span>
                                         @endif
