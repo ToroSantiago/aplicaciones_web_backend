@@ -84,6 +84,7 @@
                         <select class="form-select @error('rol') is-invalid @enderror" id="rol" name="rol" required>
                             <option value="" disabled {{ old('rol') ? '' : 'selected' }}>Seleccionar rol</option>
                             <option value="Cliente" {{ old('rol') == 'Cliente' ? 'selected' : '' }}>Cliente</option>
+                            <option value="Empleado" {{ old('rol') == 'Empleado' ? 'selected' : '' }}>Empleado</option>
                             <option value="Administrador" {{ old('rol') == 'Administrador' ? 'selected' : '' }}>Administrador</option>
                         </select>
                         @error('rol')
