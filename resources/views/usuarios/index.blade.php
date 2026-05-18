@@ -80,18 +80,62 @@
                                                title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <form action="{{ route('usuarios.destroy', $usuario->id) }}" 
-                                                  method="POST" 
-                                                  class="d-inline"
-                                                  onsubmit="return confirm('¿Estás seguro de eliminar este usuario?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" 
-                                                        class="btn btn-sm btn-outline-danger" 
-                                                        title="Eliminar">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteModal{{ $usuario->id }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                        <div class="modal fade"
+                                            id="deleteModal{{ $usuario->id }}"
+                                            tabindex="-1"
+                                            aria-hidden="true">
+
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">
+                                                            Confirmar eliminación
+                                                        </h5>
+
+                                                        <button type="button"
+                                                                class="btn-close"
+                                                                data-bs-dismiss="modal">
+                                                        </button>
+                                                    </div>
+
+                                                    <div class="modal-body">
+                                                        ¿Seguro que querés eliminar a
+                                                        <strong>{{ $usuario->username }}</strong>?
+                                                    </div>
+
+                                                    <div class="modal-footer">
+
+                                                        <button type="button"
+                                                                class="btn btn-secondary"
+                                                                data-bs-dismiss="modal">
+                                                            Cancelar
+                                                        </button>
+
+                                                        <form action="{{ route('usuarios.destroy', $usuario->id) }}"
+                                                            method="POST">
+
+                                                            @csrf
+                                                            @method('DELETE')
+
+                                                            <button type="submit"
+                                                                    class="btn btn-danger">
+                                                                Eliminar
+                                                            </button>
+
+                                                        </form>
+
+                                                    </div>
+
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
