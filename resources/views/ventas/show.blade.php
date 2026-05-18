@@ -82,15 +82,65 @@
                                     </form>
                                 @endif
                                 @if($venta->estado != 'cancelada')
-                                    <form action="{{ route('ventas.updateStatus', $venta->id) }}" method="POST" class="flex-fill"
-                                          onsubmit="return confirm('¿Está seguro de cancelar esta venta? Se devolverá el stock.')">
-                                        @csrf
-                                        @method('PATCH')
-                                        <input type="hidden" name="estado" value="cancelada">
-                                        <button type="submit" class="btn btn-danger btn-sm w-100">
-                                            <i class="fas fa-times"></i> Cancelar
-                                        </button>
-                                    </form>
+                                <button type="button"
+                                        class="btn btn-danger btn-sm flex-fill"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#cancelarVentaModal">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+
+                                <div class="modal fade" id="cancelarVentaModal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                                    Confirmar cancelación
+                                                </h5>
+                                                <button type="button"
+                                                        class="btn-close btn-close-white"
+                                                        data-bs-dismiss="modal"></button>
+                                            </div>
+
+                                            <div class="modal-body">
+                                                <p class="mb-2">
+                                                    ¿Estás seguro de cancelar esta venta?
+                                                </p>
+
+                                                <div class="alert alert-warning mb-0">
+                                                    <i class="fas fa-box-open me-2"></i>
+                                                    El stock será devuelto automáticamente.
+                                                </div>
+                                            </div>
+
+                                            <div class="modal-footer">
+                                                <button type="button"
+                                                        class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">
+                                                    Volver
+                                                </button>
+
+                                                <form action="{{ route('ventas.updateStatus', $venta->id) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    @method('PATCH')
+
+                                                    <input type="hidden"
+                                                        name="estado"
+                                                        value="cancelada">
+
+                                                    <button type="submit"
+                                                            class="btn btn-danger">
+                                                        <i class="fas fa-times me-1"></i>
+                                                        Sí, cancelar venta
+                                                    </button>
+                                                </form>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
                                 @endif
                             </div>
                         @endif

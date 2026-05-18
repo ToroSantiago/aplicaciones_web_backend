@@ -160,16 +160,74 @@
                                                         @endif
                                                         @if($venta->estado != 'cancelada')
                                                             <li>
-                                                                <form action="{{ route('ventas.updateStatus', $venta->id) }}"
-                                                                      method="POST" class="d-inline"
-                                                                      onsubmit="return confirm('¿Cancelar esta venta? Se devolverá el stock.')">
-                                                                    @csrf
-                                                                    @method('PATCH')
-                                                                    <input type="hidden" name="estado" value="cancelada">
-                                                                    <button type="submit" class="dropdown-item">
-                                                                        <i class="fas fa-times text-danger me-2"></i>Cancelar
-                                                                    </button>
-                                                                </form>
+                                                            <button type="button"
+                                                                        class="dropdown-item"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#cancelarVentaModal{{ $venta->id }}">
+
+                                                                    <i class="fas fa-times text-danger me-2"></i>Cancelar
+                                                                </button>
+
+                                                                <div class="modal fade"
+                                                                    id="cancelarVentaModal{{ $venta->id }}"
+                                                                    tabindex="-1"
+                                                                    aria-hidden="true">
+
+                                                                    <div class="modal-dialog">
+                                                                        <div class="modal-content">
+
+                                                                            <div class="modal-header">
+                                                                                <h5 class="modal-title">
+                                                                                    Cancelar venta
+                                                                                </h5>
+
+                                                                                <button type="button"
+                                                                                        class="btn-close"
+                                                                                        data-bs-dismiss="modal">
+                                                                                </button>
+                                                                            </div>
+
+                                                                            <div class="modal-body">
+                                                                                ¿Seguro que querés cancelar la venta
+                                                                                <strong>#{{ $venta->id }}</strong>?
+
+                                                                                <br><br>
+
+                                                                                <span class="text-danger">
+                                                                                    El stock será devuelto automáticamente.
+                                                                                </span>
+                                                                            </div>
+
+                                                                            <div class="modal-footer">
+
+                                                                                <button type="button"
+                                                                                        class="btn btn-secondary"
+                                                                                        data-bs-dismiss="modal">
+                                                                                    Volver
+                                                                                </button>
+
+                                                                                <form action="{{ route('ventas.updateStatus', $venta->id) }}"
+                                                                                    method="POST">
+
+                                                                                    @csrf
+                                                                                    @method('PATCH')
+
+                                                                                    <input type="hidden"
+                                                                                        name="estado"
+                                                                                        value="cancelada">
+
+                                                                                    <button type="submit"
+                                                                                            class="btn btn-danger">
+                                                                                        Confirmar cancelación
+                                                                                    </button>
+
+                                                                                </form>
+
+                                                                            </div>
+
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                             </li>
                                                         @endif
                                                     </ul>
