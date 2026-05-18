@@ -56,10 +56,12 @@
                         <tr>
                             <th style="width: 30%">Rol:</th>
                             <td>
-                                @if($usuario->rol === 'Administrador')
-                                    <span class="badge bg-danger">Administrador</span>
+                                @if($usuario->rol == 'Administrador')
+                                    <span class="badge bg-success">Administrador</span>
+                                @elseif($usuario->rol == 'Empleado')
+                                    <span class="badge bg-primary">Empleado</span>
                                 @else
-                                    <span class="badge bg-success">Cliente</span>
+                                    <span class="badge bg-secondary">Cliente</span>
                                 @endif
                             </td>
                         </tr>
