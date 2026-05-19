@@ -115,6 +115,7 @@
                             <tr>
                                 <th>Volumen</th>
                                 <th>Precio</th>
+                                <th>Descuento</th>
                                 <th>Stock</th>
                                 <th>Estado</th>
                             </tr>
@@ -123,7 +124,24 @@
                             @foreach($perfume->variantes->sortBy('volumen') as $variante)
                                 <tr>
                                     <td><strong>{{ $variante->volumen }} ml</strong></td>
-                                    <td>${{ number_format($variante->precio, 2, ',', '.') }}</td>
+                                    <td>
+                                        @if($variante->tiene_descuento)
+                                            <s class="text-muted small">${{ number_format($variante->precio, 2, ',', '.') }}</s>
+                                            <br>
+                                            <strong class="text-success">${{ number_format($variante->precio_final, 2, ',', '.') }}</strong>
+                                        @else
+                                            ${{ number_format($variante->precio, 2, ',', '.') }}
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($variante->tiene_descuento)
+                                            @php $d = $variante->descuentoVigente(); @endphp
+                                            <span class="badge bg-danger">-{{ rtrim(rtrim(number_format($d->porcentaje, 2, ',', '.'), '0'), ',') }}%</span>
+                                            <br><small class="text-muted">{{ $d->nombre }}</small>
+                                        @else
+                                            <span class="text-muted small">—</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $variante->stock }} unidades</td>
                                     <td>
                                         @if($variante->stock > 10)

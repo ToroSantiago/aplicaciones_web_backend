@@ -82,8 +82,11 @@
                                         </button>
                                     </td>
                                     <td>
-                                        ${{ number_format($perfume->precio_minimo, 2, ',', '.') }} - 
+                                        ${{ number_format($perfume->precio_minimo, 2, ',', '.') }} -
                                         ${{ number_format($perfume->precio_maximo, 2, ',', '.') }}
+                                        @if($perfume->variantes->contains(fn($v) => $v->tiene_descuento))
+                                            <br><span class="badge bg-danger mt-1"><i class="fas fa-tag me-1"></i>Con descuento</span>
+                                        @endif
                                     </td>
                                     <td>
                                         @if($perfume->stock_total > 0)
@@ -190,6 +193,7 @@
                                                 <th>Volumen</th>
                                                 <th>Precio</th>
                                                 <th>Stock</th>
+                                                <th>Descuento</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -197,7 +201,15 @@
                                                 @foreach($perfume->variantes->sortBy('volumen') as $variante)
                                                     <tr>
                                                         <td>{{ $variante->volumen }} ml</td>
-                                                        <td>${{ number_format($variante->precio, 2, ',', '.') }}</td>
+                                                        <td>
+                                                            @if($variante->tiene_descuento)
+                                                                <s class="text-muted small">${{ number_format($variante->precio, 2, ',', '.') }}</s>
+                                                                <br>
+                                                                <strong class="text-success">${{ number_format($variante->precio_final, 2, ',', '.') }}</strong>
+                                                            @else
+                                                                ${{ number_format($variante->precio, 2, ',', '.') }}
+                                                            @endif
+                                                        </td>
                                                         <td>
                                                             @if($variante->stock > 0)
                                                                 <span class="badge bg-success">{{ $variante->stock }} unidades</span>
@@ -205,11 +217,18 @@
                                                                 <span class="badge bg-danger">Agotado</span>
                                                             @endif
                                                         </td>
+                                                        <td>
+                                                            @if($variante->tiene_descuento)
+                                                                <span class="badge bg-danger">-{{ rtrim(rtrim(number_format($variante->descuento_porcentaje, 2, ',', '.'), '0'), ',') }}%</span>
+                                                            @else
+                                                                <span class="text-muted small">—</span>
+                                                            @endif
+                                                        </td>
                                                     </tr>
                                                 @endforeach
                                             @else
                                                 <tr>
-                                                    <td colspan="3" class="text-center text-muted">
+                                                    <td colspan="4" class="text-center text-muted">
                                                         No hay variantes disponibles
                                                     </td>
                                                 </tr>

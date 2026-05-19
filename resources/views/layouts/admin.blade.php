@@ -194,11 +194,16 @@
                                 </a>
                             </li>
 
-                            {{-- Solo administradores ven el módulo de usuarios --}}
+                            {{-- Solo administradores ven el módulo de usuarios y descuentos --}}
                             @if(Auth::user()->isAdmin())
                                 <li class="nav-item">
                                     <a class="sidebar-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
                                         <i class="fas fa-users me-2"></i>Usuarios
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="sidebar-link {{ request()->routeIs('descuentos.*') ? 'active' : '' }}" href="{{ route('descuentos.index') }}">
+                                        <i class="fas fa-tags me-2"></i>Descuentos
                                     </a>
                                 </li>
                             @endif

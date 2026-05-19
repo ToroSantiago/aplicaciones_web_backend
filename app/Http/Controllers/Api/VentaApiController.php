@@ -55,7 +55,10 @@ class VentaApiController extends Controller
                 $detallesVenta = [];
 
                 foreach ($request->items as $item) {
-                    $variante = PerfumeVariante::where('perfume_id', $item['perfume_id'])
+                    // Eager-loadeamos descuentos para que precio_final use la
+                    // colección ya cargada y no genere N+1.
+                    $variante = PerfumeVariante::with('descuentos')
+                                               ->where('perfume_id', $item['perfume_id'])
                                                ->where('volumen', $item['volumen'])
                                                ->first();
 
@@ -68,13 +71,17 @@ class VentaApiController extends Controller
                         throw new \Exception("Stock insuficiente para {$perfume->nombre} {$item['volumen']}ml. Stock disponible: {$variante->stock}");
                     }
 
-                    $subtotal = $variante->precio * $item['cantidad'];
-                    $total += $subtotal;
+                    // Precio con descuento aplicado SERVER-SIDE: nunca confiar en
+                    // un precio enviado por el cliente. Se congela en venta_detalles
+                    // como histórico de lo efectivamente cobrado.
+                    $precioUnitario = $variante->precio_final;
+                    $subtotal       = $precioUnitario * $item['cantidad'];
+                    $total         += $subtotal;
 
                     $detallesVenta[] = [
                         'variante' => $variante,
                         'cantidad' => $item['cantidad'],
-                        'precio_unitario' => $variante->precio,
+                        'precio_unitario' => $precioUnitario,
                         'subtotal' => $subtotal
                     ];
                 }

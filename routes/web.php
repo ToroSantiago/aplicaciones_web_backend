@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DescuentoController;
 use App\Http\Controllers\PerfumeController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\VentaController;
@@ -70,6 +71,9 @@ Route::middleware('web')->group(function () {
 
         // ABM de usuarios (incluye asignar/quitar el rol Administrador)
         Route::resource('usuarios', UsuarioController::class);
+
+        // ABM de descuentos por variante (campañas con % y vigencia)
+        Route::resource('descuentos', DescuentoController::class);
 
         // Estadísticas (placeholder — el módulo real está en VentaController::estadisticas)
         Route::resource('estadisticas', EstadisticasController::class);

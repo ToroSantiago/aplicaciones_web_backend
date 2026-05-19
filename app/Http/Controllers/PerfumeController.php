@@ -11,7 +11,7 @@ class PerfumeController extends Controller
      */
     public function index()
     {
-        $perfumes = Perfume::with('variantes')->get();
+        $perfumes = Perfume::with('variantes.descuentos')->get();
         return view('listarPerfumes', compact('perfumes'));
     }
     
@@ -66,7 +66,7 @@ class PerfumeController extends Controller
      */
     public function show(string $id)
     {
-        $perfume = Perfume::with('variantes')->findOrFail($id);
+        $perfume = Perfume::with('variantes.descuentos')->findOrFail($id);
         return view('mostrarPerfume', compact('perfume'));
     }
     
@@ -75,7 +75,7 @@ class PerfumeController extends Controller
      */
     public function edit(string $id)
     {
-        $perfume = Perfume::with('variantes')->findOrFail($id);
+        $perfume = Perfume::with('variantes.descuentos')->findOrFail($id);
         return view('editarPerfume', compact('perfume'));
     }
     

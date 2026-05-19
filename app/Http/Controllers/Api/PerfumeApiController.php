@@ -14,7 +14,7 @@ class PerfumeApiController extends Controller
     public function index()
     {
         try {
-            $perfumes = Perfume::with('variantes')->take(5)->get();
+            $perfumes = Perfume::with('variantes.descuentos')->take(5)->get();
             
             // Agregar atributos calculados
             $perfumes = $perfumes->map(function ($perfume) {
@@ -42,7 +42,7 @@ class PerfumeApiController extends Controller
     public function show($id)
     {
         try {
-            $perfume = Perfume::with('variantes')->findOrFail($id);
+            $perfume = Perfume::with('variantes.descuentos')->findOrFail($id);
             
             return response()->json([
                 'success' => true,
@@ -90,7 +90,7 @@ class PerfumeApiController extends Controller
                 $perfume->variantes()->create($variante);
             }
             
-            $perfume->load('variantes');
+            $perfume->load('variantes.descuentos');
             
             return response()->json([
                 'success' => true,
@@ -146,7 +146,7 @@ class PerfumeApiController extends Controller
                 }
             }
             
-            $perfume->load('variantes');
+            $perfume->load('variantes.descuentos');
             
             return response()->json([
                 'success' => true,
@@ -212,7 +212,7 @@ class PerfumeApiController extends Controller
     {
         try {
             $perPage = $request->get('per_page', 10);
-            $perfumes = Perfume::with('variantes')->paginate($perPage);
+            $perfumes = Perfume::with('variantes.descuentos')->paginate($perPage);
             
             // Formatear los perfumes
             $formattedPerfumes = $perfumes->getCollection()->map(function ($perfume) {
@@ -257,7 +257,7 @@ class PerfumeApiController extends Controller
                 ], 400);
             }
             
-            $perfumes = Perfume::with('variantes')->where('genero', $generoUppercase)->get();
+            $perfumes = Perfume::with('variantes.descuentos')->where('genero', $generoUppercase)->get();
             
             $formattedPerfumes = $perfumes->map(function ($perfume) {
                 return $this->formatPerfumeWithVariantes($perfume);
@@ -284,7 +284,7 @@ class PerfumeApiController extends Controller
     public function all()
     {
         try {
-            $perfumes = Perfume::with('variantes')->get();
+            $perfumes = Perfume::with('variantes.descuentos')->get();
             
             $formattedPerfumes = $perfumes->map(function ($perfume) {
                 return $this->formatPerfumeWithVariantes($perfume);
@@ -385,21 +385,35 @@ class PerfumeApiController extends Controller
     private function formatPerfumeWithVariantes($perfume)
     {
         $perfumeArray = $perfume->toArray();
-        
+
         // Agregar atributos calculados
         $perfumeArray['precio_minimo'] = $perfume->precio_minimo;
         $perfumeArray['precio_maximo'] = $perfume->precio_maximo;
         $perfumeArray['hay_stock'] = $perfume->hay_stock;
         $perfumeArray['stock_total'] = $perfume->stock_total;
-        
+
+        // Enriquecer cada variante con info del descuento vigente.
+        // El SPA puede usar `precio_final` para mostrar el tachado y el precio real.
+        $perfumeArray['variantes'] = $perfume->variantes->map(function ($variante) {
+            $descuento = $variante->descuentoVigente();
+            return array_merge($variante->toArray(), [
+                'precio_final'         => $variante->precio_final,
+                'tiene_descuento'      => $variante->tiene_descuento,
+                'descuento_porcentaje' => $variante->descuento_porcentaje,
+                'descuento_nombre'     => $descuento?->nombre,
+            ]);
+        })->toArray();
+
         // Para compatibilidad con el frontend actual, agregar precio y volumen del primer variante
         if ($perfume->variantes->count() > 0) {
             $primeraVariante = $perfume->variantes->first();
-            $perfumeArray['precio'] = $primeraVariante->precio;
-            $perfumeArray['volumen'] = $primeraVariante->volumen;
-            $perfumeArray['stock'] = $primeraVariante->stock;
+            $perfumeArray['precio']           = $primeraVariante->precio;
+            $perfumeArray['precio_final']     = $primeraVariante->precio_final;
+            $perfumeArray['tiene_descuento']  = $primeraVariante->tiene_descuento;
+            $perfumeArray['volumen']          = $primeraVariante->volumen;
+            $perfumeArray['stock']            = $primeraVariante->stock;
         }
-        
+
         return $perfumeArray;
     }
 

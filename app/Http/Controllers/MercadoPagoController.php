@@ -42,7 +42,9 @@ class MercadoPagoController extends Controller
             $items = $request->input('items');
             $payer = $request->input('payer');
 
-            // Verificar stock antes de crear la preferencia
+            // Verificar stock antes de crear la preferencia.
+            // Devuelve los mismos items pero con unit_price recalculado server-side
+            // (precio_final con descuento vigente, si aplica).
             $stockValidation = $this->validateAndReserveStock($items);
             if (!$stockValidation['success']) {
                 DB::rollBack();
@@ -51,6 +53,9 @@ class MercadoPagoController extends Controller
                     'error' => $stockValidation['message']
                 ], 400);
             }
+
+            // Usamos los items con el precio corregido por el servidor.
+            $items = $stockValidation['items'];
 
             // Crear la solicitud de preferencia
             $requestData = $this->createPreferenceRequest($items, $payer);
@@ -108,15 +113,24 @@ class MercadoPagoController extends Controller
     }
 
     /**
-     * Validar y reservar stock
+     * Validar y reservar stock.
+     *
+     * Devuelve los items con `unit_price` recalculado server-side aplicando
+     * el descuento vigente (si lo hay). NUNCA se confía en el precio que
+     * envía el cliente — esto evita que un usuario manipule el precio en
+     * el navegador antes de pagar.
      */
     private function validateAndReserveStock($items)
     {
         try {
+            $itemsConPrecioServidor = [];
+
             foreach ($items as $item) {
-                // El ID que viene del frontend es el variante_id
-                $variante = PerfumeVariante::find($item['id']);
-                
+                // El ID que viene del frontend es el variante_id.
+                // Eager-loadeamos descuentos para que precio_final use la
+                // colección ya cargada (evita N+1).
+                $variante = PerfumeVariante::with('descuentos')->find($item['id']);
+
                 if (!$variante) {
                     return [
                         'success' => false,
@@ -136,10 +150,15 @@ class MercadoPagoController extends Controller
                 $variante->stock -= $item['quantity'];
                 $variante->save();
 
-                Log::info("Stock actualizado para variante {$variante->id}: nuevo stock = {$variante->stock}");
+                // Pisamos el precio del cliente con el server-side (con descuento aplicado).
+                $itemServidor = $item;
+                $itemServidor['unit_price'] = $variante->precio_final;
+                $itemsConPrecioServidor[] = $itemServidor;
+
+                Log::info("Stock actualizado para variante {$variante->id}: nuevo stock = {$variante->stock}, precio aplicado = {$variante->precio_final}");
             }
 
-            return ['success' => true];
+            return ['success' => true, 'items' => $itemsConPrecioServidor];
 
         } catch (Exception $e) {
             Log::error('Error al validar/reservar stock: ' . $e->getMessage());
