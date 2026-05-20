@@ -36,147 +36,149 @@
                     <i class="fas fa-info-circle me-2"></i>No hay perfumes registrados.
                 </div>
             @else
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th scope="col">ID</th>
-                                <th scope="col">Imagen</th>
-                                <th scope="col">Nombre</th>
-                                <th scope="col">Marca</th>
-                                <th scope="col">Género</th>
-                                <th scope="col">Variantes</th>
-                                <th scope="col">Rango de Precios</th>
-                                <th scope="col">Stock Total</th>
-                                <th scope="col">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($perfumes as $perfume)
+                <div class="d-none d-md-block">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
                                 <tr>
-                                    <td>{{ $perfume->id }}</td>
-                                    <td>
-                                        @if($perfume->imagen_url)
-                                            <img src="{{ $perfume->imagen_url }}" alt="{{ $perfume->nombre }}" 
-                                                 class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
-                                        @else
-                                            <span class="text-muted">Sin imagen</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ $perfume->nombre }}</td>
-                                    <td>{{ $perfume->marca }}</td>
-                                    <td>
-                                        @if($perfume->genero == 'M')
-                                            <span class="badge bg-primary">Masculino</span>
-                                        @elseif($perfume->genero == 'F')
-                                            <span class="badge bg-danger">Femenino</span>
-                                        @else
-                                            <span class="badge bg-info">Unisex</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#variantesModal{{ $perfume->id }}">
-                                            <i class="fas fa-boxes me-1"></i>Ver variantes
-                                        </button>
-                                    </td>
-                                    <td>
-                                        ${{ number_format($perfume->precio_minimo, 2, ',', '.') }} -
-                                        ${{ number_format($perfume->precio_maximo, 2, ',', '.') }}
-                                        @if($perfume->variantes->contains(fn($v) => $v->tiene_descuento))
-                                            <br><span class="badge bg-danger mt-1"><i class="fas fa-tag me-1"></i>Con descuento</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($perfume->stock_total > 0)
-                                            <span class="badge bg-success">{{ $perfume->stock_total }} unidades</span>
-                                        @else
-                                            <span class="badge bg-danger">Agotado</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group" aria-label="Acciones">
-                                            <a href="{{ route('perfumes.show', $perfume->id) }}" 
-                                               class="btn btn-sm btn-outline-info" 
-                                               title="Ver detalles">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            @auth
-                                                @if(Auth::user()->isAdmin())
-                                                    <a href="{{ route('perfumes.edit', $perfume->id) }}"
-                                                       class="btn btn-sm btn-outline-primary"
-                                                       title="Editar">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-outline-danger"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#deletePerfumeModal{{ $perfume->id }}"
-                                                            title="Eliminar">
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Imagen</th>
+                                    <th scope="col">Nombre</th>
+                                    <th scope="col">Marca</th>
+                                    <th scope="col">Género</th>
+                                    <th scope="col">Variantes</th>
+                                    <th scope="col">Rango de Precios</th>
+                                    <th scope="col">Stock Total</th>
+                                    <th scope="col">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($perfumes as $perfume)
+                                    <tr>
+                                        <td>{{ $perfume->id }}</td>
+                                        <td>
+                                            @if($perfume->imagen_url)
+                                                <img src="{{ $perfume->imagen_url }}" alt="{{ $perfume->nombre }}" 
+                                                    class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                            @else
+                                                <span class="text-muted">Sin imagen</span>
+                                            @endif
+                                        </td>
+                                        <td>{{ $perfume->nombre }}</td>
+                                        <td>{{ $perfume->marca }}</td>
+                                        <td>
+                                            @if($perfume->genero == 'M')
+                                                <span class="badge bg-primary">Masculino</span>
+                                            @elseif($perfume->genero == 'F')
+                                                <span class="badge bg-danger">Femenino</span>
+                                            @else
+                                                <span class="badge bg-info">Unisex</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#variantesModal{{ $perfume->id }}">
+                                                <i class="fas fa-boxes me-1"></i>Ver variantes
+                                            </button>
+                                        </td>
+                                        <td>
+                                            ${{ number_format($perfume->precio_minimo, 2, ',', '.') }} -
+                                            ${{ number_format($perfume->precio_maximo, 2, ',', '.') }}
+                                            @if($perfume->variantes->contains(fn($v) => $v->tiene_descuento))
+                                                <br><span class="badge bg-danger mt-1"><i class="fas fa-tag me-1"></i>Con descuento</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($perfume->stock_total > 0)
+                                                <span class="badge bg-success">{{ $perfume->stock_total }} unidades</span>
+                                            @else
+                                                <span class="badge bg-danger">Agotado</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group" aria-label="Acciones">
+                                                <a href="{{ route('perfumes.show', $perfume->id) }}" 
+                                                class="btn btn-sm btn-outline-info" 
+                                                title="Ver detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                @auth
+                                                    @if(Auth::user()->isAdmin())
+                                                        <a href="{{ route('perfumes.edit', $perfume->id) }}"
+                                                        class="btn btn-sm btn-outline-primary"
+                                                        title="Editar">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <button type="button"
+                                                                class="btn btn-sm btn-outline-danger"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#deletePerfumeModal{{ $perfume->id }}"
+                                                                title="Eliminar">
 
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                    <div class="modal fade"
-                                                        id="deletePerfumeModal{{ $perfume->id }}"
-                                                        tabindex="-1"
-                                                        aria-hidden="true">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                        <div class="modal fade"
+                                                            id="deletePerfumeModal{{ $perfume->id }}"
+                                                            tabindex="-1"
+                                                            aria-hidden="true">
 
-                                                        <div class="modal-dialog">
-                                                            <div class="modal-content">
+                                                            <div class="modal-dialog">
+                                                                <div class="modal-content">
 
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title">
-                                                                        Confirmar eliminación
-                                                                    </h5>
+                                                                    <div class="modal-header">
+                                                                        <h5 class="modal-title">
+                                                                            Confirmar eliminación
+                                                                        </h5>
 
-                                                                    <button type="button"
-                                                                            class="btn-close"
-                                                                            data-bs-dismiss="modal">
-                                                                    </button>
-                                                                </div>
+                                                                        <button type="button"
+                                                                                class="btn-close"
+                                                                                data-bs-dismiss="modal">
+                                                                        </button>
+                                                                    </div>
 
-                                                                <div class="modal-body">
-                                                                    ¿Seguro que querés eliminar el perfume
-                                                                    <strong>{{ $perfume->nombre }}</strong>?
-                                                                </div>
+                                                                    <div class="modal-body">
+                                                                        ¿Seguro que querés eliminar el perfume
+                                                                        <strong>{{ $perfume->nombre }}</strong>?
+                                                                    </div>
 
-                                                                <div class="modal-footer">
+                                                                    <div class="modal-footer">
 
-                                                                    <button type="button"
-                                                                            class="btn btn-secondary"
-                                                                            data-bs-dismiss="modal">
-                                                                        Cancelar
-                                                                    </button>
-
-                                                                    <form action="{{ route('perfumes.destroy', $perfume->id) }}"
-                                                                        method="POST">
-
-                                                                        @csrf
-                                                                        @method('DELETE')
-
-                                                                        <button type="submit"
-                                                                                class="btn btn-danger">
-                                                                            Eliminar
+                                                                        <button type="button"
+                                                                                class="btn btn-secondary"
+                                                                                data-bs-dismiss="modal">
+                                                                            Cancelar
                                                                         </button>
 
-                                                                    </form>
+                                                                        <form action="{{ route('perfumes.destroy', $perfume->id) }}"
+                                                                            method="POST">
+
+                                                                            @csrf
+                                                                            @method('DELETE')
+
+                                                                            <button type="submit"
+                                                                                    class="btn btn-danger">
+                                                                                Eliminar
+                                                                            </button>
+
+                                                                        </form>
+
+                                                                    </div>
 
                                                                 </div>
-
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                @endif
-                                            @endauth
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                                                    @endif
+                                                @endauth
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                
+
                 <!-- Modales de variantes - FUERA de la tabla -->
                 @foreach($perfumes as $perfume)
                     <div class="modal fade" id="variantesModal{{ $perfume->id }}" tabindex="-1" aria-hidden="true">
@@ -241,7 +243,108 @@
                     </div>
                 @endforeach
                 <!-- Fin de modales -->
-                
+
+                <!-- Cards mobile -->
+                <div class="d-block d-md-none">
+                    @foreach ($perfumes as $perfume)
+
+                        <div class="card mb-3 shadow-sm border-0">
+
+                            <div class="card-body">
+
+                                <div class="d-flex align-items-center mb-3">
+
+                                    @if($perfume->imagen_url)
+                                        <img src="{{ $perfume->imagen_url }}"
+                                            alt="{{ $perfume->nombre }}"
+                                            class="rounded me-3"
+                                            style="width: 70px; height: 70px; object-fit: cover;">
+                                    @endif
+
+                                    <div>
+                                        <h5 class="mb-1">{{ $perfume->nombre }}</h5>
+                                        <small class="text-muted">{{ $perfume->marca }}</small>
+                                    </div>
+
+                                </div>
+
+                                <div class="mb-2">
+
+                                    @if($perfume->genero == 'M')
+                                        <span class="badge bg-primary">Masculino</span>
+                                    @elseif($perfume->genero == 'F')
+                                        <span class="badge bg-danger">Femenino</span>
+                                    @else
+                                        <span class="badge bg-info">Unisex</span>
+                                    @endif
+
+                                </div>
+
+                                <div class="mb-2">
+                                    <strong>Precio:</strong><br>
+
+                                    ${{ number_format($perfume->precio_minimo, 2, ',', '.') }}
+                                    -
+                                    ${{ number_format($perfume->precio_maximo, 2, ',', '.') }}
+
+                                    @if($perfume->variantes->contains(fn($v) => $v->tiene_descuento))
+                                        <br>
+                                        <span class="badge bg-danger mt-1">
+                                            <i class="fas fa-tag me-1"></i>Con descuento
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <div class="mb-3">
+
+                                    <strong>Stock:</strong><br>
+
+                                    @if($perfume->stock_total > 0)
+                                        <span class="badge bg-success">
+                                            {{ $perfume->stock_total }} unidades
+                                        </span>
+                                    @else
+                                        <span class="badge bg-danger">
+                                            Agotado
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="button"
+                                            class="btn btn-outline-secondary btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#variantesModal{{ $perfume->id }}">
+                                        <i class="fas fa-boxes me-1"></i>
+                                        Ver variantes
+                                    </button>
+
+                                    <div class="btn-group">
+                                        <a href="{{ route('perfumes.show', $perfume->id) }}"
+                                        class="btn btn-outline-info btn-sm">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                        @auth
+                                            @if(Auth::user()->isAdmin())
+                                                <a href="{{ route('perfumes.edit', $perfume->id) }}"
+                                                class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button"
+                                                        class="btn btn-outline-danger btn-sm"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#deletePerfumeModal{{ $perfume->id }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            @endif
+                                        @endauth
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
             @endif
         </div>
         <div class="card-footer text-muted">
