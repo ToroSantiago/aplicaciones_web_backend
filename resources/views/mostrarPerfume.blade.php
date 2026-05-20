@@ -109,7 +109,7 @@
             <!-- Sección de Variantes -->
             <div class="mt-4">
                 <h5><i class="fas fa-boxes me-2"></i>Variantes del Perfume</h5>
-                <div class="table-responsive">
+                <div class="table-responsive d-none d-md-block">
                     <table class="table table-striped">
                         <thead>
                             <tr>
@@ -157,6 +157,73 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- Variantes mobile -->
+            <div class="d-block d-md-none">
+            @foreach($perfume->variantes->sortBy('volumen') as $variante)
+                <div class="card mb-3 shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">
+                                {{ $variante->volumen }} ml
+                            </h5>
+                            @if($variante->stock > 10)
+                                <span class="badge bg-success">
+                                    Disponible
+                                </span>
+                            @elseif($variante->stock > 0)
+                                <span class="badge bg-warning">
+                                    Stock bajo
+                                </span>
+                            @else
+                                <span class="badge bg-danger">
+                                    Agotado
+                                </span>
+                            @endif
+                        </div>
+
+                        <div class="mb-2">
+                            <strong>Precio:</strong><br>
+                            @if($variante->tiene_descuento)
+                                <s class="text-muted">
+                                    ${{ number_format($variante->precio, 2, ',', '.') }}
+                                </s>
+                                <br>
+                                <strong class="text-success fs-5">
+                                    ${{ number_format($variante->precio_final, 2, ',', '.') }}
+                                </strong>
+                            @else
+                                <span class="fs-5">
+                                    ${{ number_format($variante->precio, 2, ',', '.') }}
+                                </span>
+                            @endif
+                        </div>
+
+                        <div class="mb-2">
+                            <strong>Stock:</strong><br>
+                            {{ $variante->stock }} unidades
+                        </div>
+
+                        <div>
+                            <strong>Descuento:</strong><br>
+                            @if($variante->tiene_descuento)
+                                @php $d = $variante->descuentoVigente(); @endphp
+                                <span class="badge bg-danger">
+                                    -{{ rtrim(rtrim(number_format($d->porcentaje, 2, ',', '.'), '0'), ',') }}%
+                                </span>
+                                <div class="small text-muted mt-1">
+                                    {{ $d->nombre }}
+                                </div>
+                            @else
+                                <span class="text-muted">
+                                    Sin descuento
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endforeach
             </div>
             
             @auth
