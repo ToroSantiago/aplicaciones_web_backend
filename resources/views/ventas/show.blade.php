@@ -194,7 +194,9 @@
                     <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Resumen</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="resumenChart" height="200"></canvas>
+                    <div style="height:300px; position:relative;">
+                        <canvas id="resumenChart"></canvas>
+                    </div>
                     
                     <hr>
                     
