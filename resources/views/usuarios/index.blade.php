@@ -32,7 +32,7 @@
                     <i class="fas fa-info-circle me-2"></i>No hay usuarios registrados.
                 </div>
             @else
-                <div class="table-responsive">
+                <div class="table-responsive d-none d-md-block">
                     <table class="table table-striped table-hover">
                         <thead>
                             <tr>
@@ -145,6 +145,110 @@
                 </div>
             @endif
         </div>
+
+        <!-- Versión Mobile -->
+        <div class="d-md-none">
+
+            @foreach ($usuarios as $usuario)
+
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="mb-0">
+                                    {{ $usuario->nombre }} {{ $usuario->apellido }}
+                                </h6>
+                            </div>
+
+                            <span class="badge bg-secondary">
+                                #{{ $usuario->id }}
+                            </span>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-2">
+                            <small class="text-muted d-block">
+                                Email
+                            </small>
+
+                            <strong>
+                                {{ $usuario->email }}
+                            </strong>
+                        </div>
+
+                        <div class="row mb-3">
+
+                            <div class="col-6">
+                                <small class="text-muted d-block">
+                                    Rol
+                                </small>
+
+                                @if($usuario->rol == 'Administrador')
+                                    <span class="badge bg-success">
+                                        Administrador
+                                    </span>
+                                @elseif($usuario->rol == 'Empleado')
+                                    <span class="badge bg-primary">
+                                        Empleado
+                                    </span>
+                                @else
+                                    <span class="badge bg-secondary">
+                                        Cliente
+                                    </span>
+                                @endif
+                            </div>
+
+                            <div class="col-6">
+                                <small class="text-muted d-block">
+                                    Estado email
+                                </small>
+
+                                @if($usuario->email_verified_at)
+                                    <span class="badge bg-success">
+                                        Verificado
+                                    </span>
+                                @else
+                                    <span class="badge bg-danger">
+                                        Sin verificar
+                                    </span>
+                                @endif
+                            </div>
+
+                        </div>
+
+                        <div class="d-grid gap-2">
+
+                            <a href="{{ route('usuarios.show', $usuario->id) }}"
+                            class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-eye me-2"></i>
+                                Ver detalles
+                            </a>
+
+                            <a href="{{ route('usuarios.edit', $usuario->id) }}"
+                            class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-edit me-2"></i>
+                                Editar
+                            </a>
+
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal{{ $usuario->id }}">
+                                <i class="fas fa-trash me-2"></i>
+                                Eliminar
+                            </button>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            @endforeach
+
+        </div>
+
         <div class="card-footer text-muted">
             Total de registros: {{ $usuarios->count() }}
         </div>
