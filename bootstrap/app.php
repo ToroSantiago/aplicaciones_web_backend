@@ -30,6 +30,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
             'backoffice' => EnsureUserCanAccessBackoffice::class,
         ]);
+
+        // El webhook de MercadoPago lo invoca MP server-to-server, no tiene
+        // sesión ni token CSRF. Hay que excluirlo de la verificación CSRF.
+        $middleware->validateCsrfTokens(except: [
+            'mercadopago/webhook',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

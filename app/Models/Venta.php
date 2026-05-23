@@ -13,7 +13,8 @@ class Venta extends Model
         'total',
         'estado',
         'metodo_pago',
-        'observaciones'
+        'observaciones',
+        'external_reference', // ID de la orden en MercadoPago (null si no es MP)
     ];
 
     protected $casts = [
