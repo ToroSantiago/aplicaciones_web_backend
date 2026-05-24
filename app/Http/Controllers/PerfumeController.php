@@ -32,10 +32,8 @@ class PerfumeController extends Controller
 
             'variante_75_precio' => 'required|numeric|min:0',
             'variante_75_stock' => 'required|integer|min:0',
-
             'variante_100_precio' => 'required|numeric|min:0',
             'variante_100_stock' => 'required|integer|min:0',
-
             'variante_200_precio' => 'required|numeric|min:0',
             'variante_200_stock' => 'required|integer|min:0',
         ]);
@@ -43,12 +41,12 @@ class PerfumeController extends Controller
         $imagenUrl = null;
 
         if ($request->hasFile('imagen')) {
-            $imagenUrl = Cloudinary::upload(
+            $upload = Cloudinary::uploadApi()->upload(
                 $request->file('imagen')->getRealPath(),
-                [
-                    'folder' => 'perfumes'
-                ]
-            )->getSecurePath();
+                ['folder' => 'perfumes']
+            );
+
+            $imagenUrl = $upload['secure_url'] ?? null;
         }
 
         $perfume = Perfume::create([
@@ -60,29 +58,16 @@ class PerfumeController extends Controller
         ]);
 
         $variantes = [
-            [
-                'volumen' => 75,
-                'precio' => $request->variante_75_precio,
-                'stock' => $request->variante_75_stock
-            ],
-            [
-                'volumen' => 100,
-                'precio' => $request->variante_100_precio,
-                'stock' => $request->variante_100_stock
-            ],
-            [
-                'volumen' => 200,
-                'precio' => $request->variante_200_precio,
-                'stock' => $request->variante_200_stock
-            ],
+            ['volumen' => 75, 'precio' => $request->variante_75_precio, 'stock' => $request->variante_75_stock],
+            ['volumen' => 100, 'precio' => $request->variante_100_precio, 'stock' => $request->variante_100_stock],
+            ['volumen' => 200, 'precio' => $request->variante_200_precio, 'stock' => $request->variante_200_stock],
         ];
 
         foreach ($variantes as $variante) {
             $perfume->variantes()->create($variante);
         }
 
-        return redirect()
-            ->route('perfumes.index')
+        return redirect()->route('perfumes.index')
             ->with('success', 'Perfume creado correctamente con todas sus variantes');
     }
 
@@ -111,10 +96,8 @@ class PerfumeController extends Controller
 
             'variante_75_precio' => 'required|numeric|min:0',
             'variante_75_stock' => 'required|integer|min:0',
-
             'variante_100_precio' => 'required|numeric|min:0',
             'variante_100_stock' => 'required|integer|min:0',
-
             'variante_200_precio' => 'required|numeric|min:0',
             'variante_200_stock' => 'required|integer|min:0',
         ]);
@@ -127,29 +110,20 @@ class PerfumeController extends Controller
         ];
 
         if ($request->hasFile('imagen')) {
-            $perfumeData['imagen_url'] = Cloudinary::upload(
+            $upload = Cloudinary::uploadApi()->upload(
                 $request->file('imagen')->getRealPath(),
-                [
-                    'folder' => 'perfumes'
-                ]
-            )->getSecurePath();
+                ['folder' => 'perfumes']
+            );
+
+            $perfumeData['imagen_url'] = $upload['secure_url'] ?? null;
         }
 
         $perfume->update($perfumeData);
 
         $variantes = [
-            75 => [
-                'precio' => $request->variante_75_precio,
-                'stock' => $request->variante_75_stock
-            ],
-            100 => [
-                'precio' => $request->variante_100_precio,
-                'stock' => $request->variante_100_stock
-            ],
-            200 => [
-                'precio' => $request->variante_200_precio,
-                'stock' => $request->variante_200_stock
-            ],
+            75 => ['precio' => $request->variante_75_precio, 'stock' => $request->variante_75_stock],
+            100 => ['precio' => $request->variante_100_precio, 'stock' => $request->variante_100_stock],
+            200 => ['precio' => $request->variante_200_precio, 'stock' => $request->variante_200_stock],
         ];
 
         foreach ($variantes as $volumen => $data) {
@@ -158,8 +132,7 @@ class PerfumeController extends Controller
                 ->update($data);
         }
 
-        return redirect()
-            ->route('perfumes.index')
+        return redirect()->route('perfumes.index')
             ->with('success', 'Perfume actualizado correctamente');
     }
 
@@ -167,8 +140,7 @@ class PerfumeController extends Controller
     {
         $perfume->delete();
 
-        return redirect()
-            ->route('perfumes.index')
+        return redirect()->route('perfumes.index')
             ->with('success', 'Perfume eliminado correctamente');
     }
 }
