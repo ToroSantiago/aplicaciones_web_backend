@@ -152,6 +152,39 @@
                             </span>
                         @endauth
                     </li>
+                    @auth
+                        <li class="nav-item d-md-none">
+                            <a class="nav-link {{ request()->routeIs('ventas.estadisticas') ? 'active' : '' }}" href="{{ route('ventas.estadisticas') }}">
+                                <i class="fas fa-chart-line me-2"></i>Estadísticas
+                            </a>
+                        </li>
+
+                        <li class="nav-item d-md-none">
+                            <a class="nav-link {{ request()->routeIs('perfumes.*') ? 'active' : '' }}" href="{{ route('perfumes.index') }}">
+                                <i class="fas fa-spray-can me-2"></i>Perfumes
+                            </a>
+                        </li>
+
+                        <li class="nav-item d-md-none">
+                            <a class="nav-link {{ request()->routeIs('ventas.*') ? 'active' : '' }}" href="{{ route('ventas.index') }}">
+                                <i class="fas fa-shopping-cart me-2"></i>Ventas
+                            </a>
+                        </li>
+
+                        @if(Auth::user()->isAdmin())
+                            <li class="nav-item d-md-none">
+                                <a class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
+                                    <i class="fas fa-users me-2"></i>Usuarios
+                                </a>
+                            </li>
+
+                            <li class="nav-item d-md-none">
+                                <a class="nav-link {{ request()->routeIs('descuentos.*') ? 'active' : '' }}" href="{{ route('descuentos.index') }}">
+                                    <i class="fas fa-tags me-2"></i>Descuentos
+                                </a>
+                            </li>
+                        @endif
+                    @endauth
                     <li class="nav-item">
                         @auth
                             <form method="POST" action="{{ route('logout') }}" class="d-inline">
