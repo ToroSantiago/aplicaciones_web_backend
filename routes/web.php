@@ -29,6 +29,15 @@ Route::middleware('web')->group(function () {
     Route::get('/mercadopago/success', [MercadoPagoController::class, 'success'])->name('mercadopago.success');
     Route::get('/mercadopago/failed', [MercadoPagoController::class, 'failed'])->name('mercadopago.failed');
 
+    // Webhook de MercadoPago: lo pega MP server-to-server cuando un pago
+    // cambia de estado. Es la fuente de verdad para descontar stock /
+    // marcar la venta como completada.
+    // Sin CSRF (es POST de un tercero) — Laravel 12 con apiPrefix=/edp solo
+    // expone CSRF en rutas web, pero como esta vive bajo el grupo 'web',
+    // hay que excluirla explícitamente en bootstrap/app.php.
+    Route::post('/mercadopago/webhook', [MercadoPagoController::class, 'webhook'])
+        ->name('mercadopago.webhook');
+
     /*
     |--------------------------------------------------------------------------
     | Backoffice

@@ -67,7 +67,18 @@ class VentaController extends Controller
     }
 
     /**
-     * Update the status of the sale
+     * Update the status of the sale.
+     *
+     * Reglas de stock por estado:
+     *   - 'completada' → stock DESCONTADO
+     *   - 'pendiente'  → stock INTACTO (todavía no se cobró / no se entregó)
+     *   - 'cancelada'  → stock INTACTO (devuelto si lo habíamos descontado)
+     *
+     * Cualquier transición que cruce el "umbral completada" debe ajustar el
+     * stock acordemente. Esto cubre los 6 casos posibles (incluyendo el que
+     * la lógica vieja no manejaba: pendiente → completada, que es lo que
+     * pasa cuando un admin marca a mano una venta MP que el webhook no
+     * llegó a confirmar).
      */
     public function updateStatus(Request $request, Venta $venta)
     {
@@ -75,30 +86,58 @@ class VentaController extends Controller
             'estado' => 'required|in:pendiente,completada,cancelada'
         ]);
 
-        DB::transaction(function() use ($request, $venta) {
-            $estadoAnterior = $venta->estado;
-            $venta->estado = $request->estado;
-            $venta->save();
+        $estadoNuevo = $request->estado;
+        $estadoAnterior = $venta->estado;
 
-            // Si se cancela la venta, devolver el stock
-            if ($request->estado === 'cancelada' && $estadoAnterior !== 'cancelada') {
-                foreach ($venta->detalles as $detalle) {
-                    $variante = $detalle->perfumeVariante;
-                    $variante->stock += $detalle->cantidad;
-                    $variante->save();
-                }
+        if ($estadoAnterior === $estadoNuevo) {
+            return redirect()->back()->with('success', 'La venta ya estaba en ese estado.');
+        }
+
+        DB::transaction(function () use ($estadoAnterior, $estadoNuevo, $venta) {
+            // ¿Hay que tocar stock? Solo cuando una de las dos puntas es 'completada'.
+            $teniaStockDescontado  = $estadoAnterior === 'completada';
+            $tendraStockDescontado = $estadoNuevo === 'completada';
+
+            if ($teniaStockDescontado && ! $tendraStockDescontado) {
+                // completada → (pendiente | cancelada): devolver stock
+                $this->ajustarStock($venta, sumar: true);
+            } elseif (! $teniaStockDescontado && $tendraStockDescontado) {
+                // (pendiente | cancelada) → completada: descontar stock
+                $this->ajustarStock($venta, sumar: false);
             }
-            // Si se reactiva una venta cancelada, volver a descontar el stock
-            elseif ($estadoAnterior === 'cancelada' && $request->estado !== 'cancelada') {
-                foreach ($venta->detalles as $detalle) {
-                    $variante = $detalle->perfumeVariante;
-                    $variante->stock -= $detalle->cantidad;
-                    $variante->save();
-                }
-            }
+            // pendiente <-> cancelada: no se toca el stock.
+
+            $venta->update(['estado' => $estadoNuevo]);
         });
 
-        return redirect()->back()->with('success', 'Estado de la venta actualizado correctamente');
+        return redirect()->back()->with('success', 'Estado de la venta actualizado correctamente.');
+    }
+
+    /**
+     * Suma o resta del stock de cada variante de la venta. Usa lockForUpdate
+     * para evitar race conditions con compras concurrentes.
+     */
+    private function ajustarStock(Venta $venta, bool $sumar): void
+    {
+        $venta->load('detalles');
+        $varianteIds = $venta->detalles->pluck('perfume_variante_id')->all();
+
+        $variantes = \App\Models\PerfumeVariante::whereIn('id', $varianteIds)
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
+
+        foreach ($venta->detalles as $detalle) {
+            $variante = $variantes[$detalle->perfume_variante_id] ?? null;
+            if (! $variante) {
+                continue;
+            }
+            if ($sumar) {
+                $variante->increment('stock', $detalle->cantidad);
+            } else {
+                $variante->decrement('stock', $detalle->cantidad);
+            }
+        }
     }
 
     /**

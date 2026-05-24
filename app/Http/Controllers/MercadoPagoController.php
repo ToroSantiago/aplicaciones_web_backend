@@ -2,295 +2,394 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PerfumeVariante;
+use App\Models\Usuario;
+use App\Models\Venta;
+use App\Models\VentaDetalle;
+use Exception;
 use Illuminate\Http\Request;
-use MercadoPago\MercadoPagoConfig;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\Exceptions\MPApiException;
-use Exception;
-use Illuminate\Support\Facades\Log;
-use App\Models\PerfumeVariante;
-use Illuminate\Support\Facades\DB;
+use MercadoPago\MercadoPagoConfig;
 
 class MercadoPagoController extends Controller
 {
+    /**
+     * Crea la preferencia de pago en MP y deja la Venta en estado 'pendiente'.
+     *
+     * IMPORTANTE: ya NO descontamos stock acá. La fuente de verdad pasa a ser
+     * el webhook (handleWebhook). Si el cliente abandona el pago, la venta
+     * queda como 'pendiente' y el stock nunca se ve afectado. Cuando MP nos
+     * confirma el pago aprobado, recién ahí descontamos.
+     */
     public function createPaymentPreference(Request $request)
     {
         Log::info('=== INICIO CREACIÓN PREFERENCIA DE PAGO ===');
         Log::info('Request recibido: ' . json_encode($request->all()));
 
-        // Iniciar transacción para asegurar consistencia
-        DB::beginTransaction();
-
         try {
-            // Configurar MercadoPago
-            $this->authenticate();
-            Log::info('Autenticado con éxito');
-
-            // Validar datos del request
             $request->validate([
                 'items' => 'required|array|min:1',
-                'items.*.id' => 'required|integer', // ID de la variante
+                'items.*.id' => 'required|integer',           // ID de la variante
                 'items.*.title' => 'required|string',
                 'items.*.quantity' => 'required|integer|min:1',
-                'items.*.unit_price' => 'required|numeric|min:0',
+                'items.*.unit_price' => 'required|numeric|min:0', // ignorado: recalculamos server-side
                 'payer.name' => 'required|string',
                 'payer.surname' => 'required|string',
                 'payer.email' => 'required|email',
             ]);
 
-            // Obtener items y payer del request
-            $items = $request->input('items');
             $payer = $request->input('payer');
+            $itemsRequest = $request->input('items');
 
-            // Verificar stock antes de crear la preferencia.
-            // Devuelve los mismos items pero con unit_price recalculado server-side
-            // (precio_final con descuento vigente, si aplica).
-            $stockValidation = $this->validateAndReserveStock($items);
-            if (!$stockValidation['success']) {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'error' => $stockValidation['message']
-                ], 400);
-            }
+            $externalReference = $this->generateExternalReference();
 
-            // Usamos los items con el precio corregido por el servidor.
-            $items = $stockValidation['items'];
+            // Toda la creación (validar stock + cliente + venta + detalles) en
+            // una sola transacción. Si MP falla al crear la preferencia, hacemos
+            // rollback y la venta nunca queda huérfana.
+            [$venta, $itemsServidor] = DB::transaction(function () use ($itemsRequest, $payer, $externalReference) {
+                // 1. Validar stock disponible (sin descontar). Recalculamos
+                //    precio_final server-side; nunca confiamos en unit_price del cliente.
+                $itemsServidor = [];
+                $total = 0;
 
-            // Crear la solicitud de preferencia
-            $requestData = $this->createPreferenceRequest($items, $payer);
+                foreach ($itemsRequest as $item) {
+                    $variante = PerfumeVariante::with('descuentos')->find($item['id']);
 
+                    if (! $variante) {
+                        throw new Exception("No se encontró la variante con ID {$item['id']}");
+                    }
+
+                    if ($variante->stock < $item['quantity']) {
+                        throw new Exception("Stock insuficiente para {$item['title']}. Stock disponible: {$variante->stock}");
+                    }
+
+                    $precioUnitario = $variante->precio_final;
+                    $subtotal = $precioUnitario * $item['quantity'];
+                    $total += $subtotal;
+
+                    $itemsServidor[] = [
+                        'variante'        => $variante,
+                        'cantidad'        => (int) $item['quantity'],
+                        'precio_unitario' => $precioUnitario,
+                        'subtotal'        => $subtotal,
+                        'title'           => $item['title'],
+                    ];
+                }
+
+                // 2. Resolver cliente (buscar por email; si no existe, crear).
+                $cliente = $this->resolveOrCreateCliente($payer);
+
+                // 3. Crear Venta pendiente + Detalles
+                $venta = Venta::create([
+                    'usuario_id'         => $cliente->id,
+                    'total'              => $total,
+                    'estado'             => 'pendiente',
+                    'metodo_pago'        => 'mercadopago',
+                    'external_reference' => $externalReference,
+                ]);
+
+                foreach ($itemsServidor as $item) {
+                    VentaDetalle::create([
+                        'venta_id'            => $venta->id,
+                        'perfume_variante_id' => $item['variante']->id,
+                        'cantidad'            => $item['cantidad'],
+                        'precio_unitario'     => $item['precio_unitario'],
+                        'subtotal'            => $item['subtotal'],
+                    ]);
+                }
+
+                return [$venta, $itemsServidor];
+            });
+
+            // 4. Crear preferencia en MP (fuera del lock de DB; si falla, no
+            //    es crítico que la venta exista — la podemos cancelar después).
+            $this->authenticate();
+            $requestData = $this->buildPreferenceRequest($itemsServidor, $payer, $externalReference);
             Log::info('Payload enviado a MP: ' . json_encode($requestData));
 
             $client = new PreferenceClient();
             $preference = $client->create($requestData);
 
-            Log::info('Preferencia creada exitosamente: ' . $preference->id);
-
-            // Si todo salió bien, confirmar la transacción
-            DB::commit();
-
-            // Guardar la referencia externa para poder restaurar el stock si falla el pago
-            $this->saveOrderReference($requestData['external_reference'], $items);
+            Log::info("Preferencia MP creada: {$preference->id} (venta #{$venta->id}, ref {$externalReference})");
 
             return response()->json([
-                'success' => true,
-                'id' => $preference->id,
-                'init_point' => $preference->init_point,
-                'sandbox_init_point' => $preference->sandbox_init_point,
-                'external_reference' => $requestData['external_reference']
+                'success'             => true,
+                'id'                  => $preference->id,
+                'init_point'          => $preference->init_point,
+                'sandbox_init_point'  => $preference->sandbox_init_point,
+                'external_reference'  => $externalReference,
+                'venta_id'            => $venta->id,
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            DB::rollBack();
             Log::error('Error de validación: ' . json_encode($e->errors()));
             return response()->json([
                 'success' => false,
-                'error' => 'Datos de validación incorrectos',
-                'details' => $e->errors()
+                'error'   => 'Datos de validación incorrectos',
+                'details' => $e->errors(),
             ], 422);
-        } catch (MPApiException $error) {
-            DB::rollBack();
-            Log::error('Error de MercadoPago API: ' . $error->getMessage());
-            if ($error->getApiResponse()) {
-                Log::error('Respuesta API: ' . json_encode($error->getApiResponse()->getContent()));
+        } catch (MPApiException $e) {
+            Log::error('Error de MP API: ' . $e->getMessage());
+            if ($e->getApiResponse()) {
+                Log::error('Respuesta API: ' . json_encode($e->getApiResponse()->getContent()));
+            }
+            // Si la venta ya se creó pero MP rechazó la preferencia, la
+            // cancelamos para no dejar registros huérfanos pendientes.
+            if (isset($venta)) {
+                $venta->update([
+                    'estado' => 'cancelada',
+                    'observaciones' => '[MP rechazó la creación de preferencia: ' . $e->getMessage() . ']',
+                ]);
             }
             return response()->json([
                 'success' => false,
-                'error' => 'Error en la API de MercadoPago',
-                'details' => $error->getMessage(),
+                'error'   => 'Error en la API de MercadoPago',
+                'details' => $e->getMessage(),
             ], 500);
         } catch (Exception $e) {
-            DB::rollBack();
             Log::error('Error general: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json([
                 'success' => false,
-                'error' => 'Error interno del servidor',
-                'message' => $e->getMessage(),
-            ], 500);
+                'error'   => $e->getMessage(),
+            ], 400);
         }
     }
 
     /**
-     * Validar y reservar stock.
+     * Webhook de MercadoPago.
      *
-     * Devuelve los items con `unit_price` recalculado server-side aplicando
-     * el descuento vigente (si lo hay). NUNCA se confía en el precio que
-     * envía el cliente — esto evita que un usuario manipule el precio en
-     * el navegador antes de pagar.
+     * MP nos pega acá cada vez que cambia el estado de un pago. Acá decidimos
+     * si descontar stock y completar la venta, o cancelarla.
+     *
+     * Debe ser idempotente: MP puede mandar la misma notificación varias veces.
+     * Y debe devolver 200 incluso ante errores no recuperables, para que MP
+     * no reintente para siempre. Solo devolvemos 5xx cuando MP debería reintentar.
      */
-    private function validateAndReserveStock($items)
+    public function webhook(Request $request)
     {
+        Log::info('Webhook MP recibido: ' . json_encode($request->all()));
+
         try {
-            $itemsConPrecioServidor = [];
+            // MP manda el id del pago en distintos campos según la versión:
+            //   - body: { type: 'payment', data: { id: '123' } }
+            //   - query: ?type=payment&data.id=123  o  ?topic=payment&id=123
+            $type     = $request->input('type', $request->query('type', $request->query('topic')));
+            $paymentId = $request->input('data.id', $request->query('data.id', $request->query('id')));
 
-            foreach ($items as $item) {
-                // El ID que viene del frontend es el variante_id.
-                // Eager-loadeamos descuentos para que precio_final use la
-                // colección ya cargada (evita N+1).
-                $variante = PerfumeVariante::with('descuentos')->find($item['id']);
-
-                if (!$variante) {
-                    return [
-                        'success' => false,
-                        'message' => "No se encontró la variante con ID {$item['id']}"
-                    ];
-                }
-
-                // Verificar si hay suficiente stock
-                if ($variante->stock < $item['quantity']) {
-                    return [
-                        'success' => false,
-                        'message' => "Stock insuficiente para {$item['title']}. Stock disponible: {$variante->stock}"
-                    ];
-                }
-
-                // Descontar el stock
-                $variante->stock -= $item['quantity'];
-                $variante->save();
-
-                // Pisamos el precio del cliente con el server-side (con descuento aplicado).
-                $itemServidor = $item;
-                $itemServidor['unit_price'] = $variante->precio_final;
-                $itemsConPrecioServidor[] = $itemServidor;
-
-                Log::info("Stock actualizado para variante {$variante->id}: nuevo stock = {$variante->stock}, precio aplicado = {$variante->precio_final}");
+            if ($type !== 'payment' || ! $paymentId) {
+                Log::info("Webhook MP ignorado (type={$type}, paymentId={$paymentId})");
+                return response()->json(['status' => 'ignored'], 200);
             }
 
-            return ['success' => true, 'items' => $itemsConPrecioServidor];
+            // Consultar el pago a MP para conocer su estado real (no confiar
+            // en lo que llega en el body por seguridad).
+            $this->authenticate();
+            $payment = (new PaymentClient())->get($paymentId);
 
+            $externalReference = $payment->external_reference ?? null;
+            $status            = $payment->status ?? null;
+
+            Log::info("Pago MP {$paymentId}: status={$status}, external_reference={$externalReference}");
+
+            if (! $externalReference) {
+                Log::warning("Webhook MP: pago {$paymentId} sin external_reference");
+                return response()->json(['status' => 'no_ref'], 200);
+            }
+
+            $venta = Venta::where('external_reference', $externalReference)->first();
+            if (! $venta) {
+                Log::warning("Webhook MP: no se encontró venta para ref {$externalReference}");
+                return response()->json(['status' => 'venta_not_found'], 200);
+            }
+
+            // Idempotencia: si la venta ya está cerrada (completada o cancelada),
+            // no procesamos de nuevo. Cualquier cambio posterior lo hace un admin.
+            if (in_array($venta->estado, ['completada', 'cancelada'], true)) {
+                Log::info("Webhook MP: venta #{$venta->id} ya está en estado '{$venta->estado}' — skip");
+                return response()->json(['status' => 'already_processed'], 200);
+            }
+
+            if ($status === 'approved') {
+                $this->confirmarVenta($venta);
+            } elseif (in_array($status, ['rejected', 'cancelled', 'refunded', 'charged_back'], true)) {
+                $venta->update(['estado' => 'cancelada']);
+                Log::info("Webhook MP: venta #{$venta->id} marcada como cancelada (status={$status})");
+            } else {
+                // in_process, pending, authorized → mantener pendiente.
+                Log::info("Webhook MP: venta #{$venta->id} queda pendiente (status={$status})");
+            }
+
+            return response()->json(['status' => 'ok'], 200);
         } catch (Exception $e) {
-            Log::error('Error al validar/reservar stock: ' . $e->getMessage());
-            return [
-                'success' => false,
-                'message' => 'Error al procesar el stock'
-            ];
+            Log::error('Error procesando webhook MP: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            // Devolvemos 200 igual para no entrar en loops de retry de MP.
+            // El error queda en logs para investigar.
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 200);
         }
     }
 
     /**
-     * Guardar referencia de la orden para poder restaurar stock si falla
+     * Aplica el pago aprobado: revalida stock con lock pesimista, descuenta,
+     * y marca la venta como completada. Si entre que se creó la preferencia y
+     * el pago llegó, otro cliente compró el último frasco, dejamos la venta
+     * como 'cancelada' con una observación para que el admin atienda al cliente.
      */
-    private function saveOrderReference($externalReference, $items)
+    private function confirmarVenta(Venta $venta): void
     {
-        // Aquí podrías guardar en una tabla temporal o en caché
-        // Para este ejemplo, solo lo loguearemos
-        Log::info('Orden creada con referencia: ' . $externalReference);
-        Log::info('Items de la orden: ' . json_encode($items));
-        
-        // Si tienes Redis o una tabla de órdenes temporales, guarda aquí
-        // Cache::put('order_' . $externalReference, $items, 3600); // 1 hora
+        DB::transaction(function () use ($venta) {
+            $venta->load('detalles');
+
+            // Lockear las variantes para evitar race conditions con otras compras
+            // concurrentes.
+            $varianteIds = $venta->detalles->pluck('perfume_variante_id')->all();
+            $variantes = PerfumeVariante::whereIn('id', $varianteIds)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            // Revalidar stock
+            foreach ($venta->detalles as $detalle) {
+                $variante = $variantes[$detalle->perfume_variante_id] ?? null;
+                if (! $variante || $variante->stock < $detalle->cantidad) {
+                    $obs = "[Pago APROBADO pero stock insuficiente al confirmar " .
+                           "(variante {$detalle->perfume_variante_id}, requiere {$detalle->cantidad}, " .
+                           "disponible " . ($variante->stock ?? 0) . "). " .
+                           "REVISAR Y CONTACTAR AL CLIENTE.]";
+                    $venta->update([
+                        'estado'        => 'cancelada',
+                        'observaciones' => trim(($venta->observaciones ?? '') . "\n" . $obs),
+                    ]);
+                    Log::warning("Venta #{$venta->id}: stock insuficiente al confirmar pago MP — cancelada");
+                    return;
+                }
+            }
+
+            // Todo OK, descontar y marcar completada
+            foreach ($venta->detalles as $detalle) {
+                $variantes[$detalle->perfume_variante_id]->decrement('stock', $detalle->cantidad);
+            }
+
+            $venta->update(['estado' => 'completada']);
+            Log::info("Venta #{$venta->id} completada (pago MP confirmado)");
+        });
     }
 
+    /**
+     * Callback que ve el usuario al volver desde MP tras pago exitoso.
+     * El descuento de stock NO ocurre acá — el webhook es el responsable.
+     * Esta ruta solo redirige al frontend.
+     */
     public function success(Request $request)
     {
-        Log::info('Pago exitoso: ' . json_encode($request->all()));
-
-        // Aquí puedes confirmar la venta en tu base de datos
-        $externalReference = $request->get('external_reference');
-        if ($externalReference) {
-            Log::info('Confirmando venta para referencia: ' . $externalReference);
-            // Aquí podrías marcar la orden como completada
-        }
-
-        // Redirigir al frontend
+        Log::info('Redirect MP success: ' . json_encode($request->all()));
         $frontendUrl = env('MP_SUCCESS_URL', 'https://essenzaroyalefrontend.vercel.app/success');
         return redirect($frontendUrl . '?' . http_build_query($request->all()));
     }
 
+    /**
+     * Callback de pago fallido. Tampoco toca stock (no había que devolver nada).
+     */
     public function failed(Request $request)
     {
-        Log::info('Pago fallido: ' . json_encode($request->all()));
-
-        // IMPORTANTE: Restaurar el stock cuando falla el pago
-        $externalReference = $request->get('external_reference');
-        if ($externalReference) {
-            Log::info('Intentando restaurar stock para referencia: ' . $externalReference);
-            // Aquí deberías implementar la lógica para restaurar el stock
-            // $this->restoreStock($externalReference);
-        }
-
-        // Redirigir al frontend
+        Log::info('Redirect MP failed: ' . json_encode($request->all()));
         $frontendUrl = env('MP_FAILURE_URL', 'https://essenzaroyalefrontend.vercel.app/failed');
         return redirect($frontendUrl . '?' . http_build_query($request->all()));
     }
 
-    public function webhook(Request $request)
-    {
-        Log::info('Webhook recibido: ' . json_encode($request->all()));
+    // ---------------------------------------------------------------------
+    // Helpers
+    // ---------------------------------------------------------------------
 
-        try {
-            // Verificar el tipo de notificación
-            $type = $request->get('type');
-            $data = $request->get('data');
-
-            if ($type === 'payment' && isset($data['id'])) {
-                // Aquí podrías verificar el estado del pago
-                // y actualizar tu base de datos acordemente
-                Log::info('Notificación de pago recibida: ' . $data['id']);
-            }
-
-            return response()->json(['status' => 'ok']);
-        } catch (Exception $e) {
-            Log::error('Error procesando webhook: ' . $e->getMessage());
-            return response()->json(['status' => 'error'], 500);
-        }
-    }
-
-    // ... resto de los métodos (authenticate, createPreferenceRequest) sin cambios
-    
-    protected function authenticate()
+    protected function authenticate(): void
     {
         $mpAccessToken = config('services.mercadopago.token');
-        if (!$mpAccessToken) {
+        if (! $mpAccessToken) {
             throw new Exception("El token de acceso de Mercado Pago no está configurado.");
         }
-        
+
         MercadoPagoConfig::setAccessToken($mpAccessToken);
-        Log::info('Token configurado correctamente');
     }
 
-    protected function createPreferenceRequest($items, $payer): array
+    /**
+     * Genera un external_reference único para vincular Venta ↔ pago MP.
+     */
+    private function generateExternalReference(): string
+    {
+        return 'ORDER_' . now()->format('YmdHis') . '_' . Str::random(8);
+    }
+
+    /**
+     * Busca un Usuario (cliente) por email. Si no existe, lo crea con una
+     * password aleatoria (no se la damos al cliente desde acá; podrá usar
+     * el flujo de "olvidé mi contraseña" si quiere acceder al SPA).
+     */
+    private function resolveOrCreateCliente(array $payer): Usuario
+    {
+        $cliente = Usuario::where('email', $payer['email'])->first();
+        if ($cliente) {
+            return $cliente;
+        }
+
+        return Usuario::create([
+            'email'    => $payer['email'],
+            'username' => $payer['email'],
+            'nombre'   => $payer['name'],
+            'apellido' => $payer['surname'],
+            // Password aleatoria — el comprador no la conoce. Mejor que el
+            // anterior 'password123' fijo, que era un backdoor.
+            'password' => Hash::make(Str::random(32)),
+            'rol'      => Usuario::ROL_CLIENTE,
+        ]);
+    }
+
+    /**
+     * Arma el payload que mandamos a MP para crear la preferencia.
+     */
+    protected function buildPreferenceRequest(array $itemsServidor, array $payer, string $externalReference): array
     {
         $formattedItems = [];
-        foreach ($items as $item) {
+        foreach ($itemsServidor as $item) {
             $formattedItems[] = [
-                'id' => (string)$item['id'], // Mantener el ID para referencia
-                'title' => $item['title'],
-                'quantity' => (int) $item['quantity'],
-                'unit_price' => (float) $item['unit_price'],
+                'id'          => (string) $item['variante']->id,
+                'title'       => $item['title'],
+                'quantity'    => (int) $item['cantidad'],
+                'unit_price'  => (float) $item['precio_unitario'], // server-side
                 'currency_id' => 'ARS',
             ];
         }
 
-        $paymentMethods = [
-            "excluded_payment_methods" => [],
-            "excluded_payment_types" => [],
-            "installments" => 12,
-        ];
-
-        $backUrls = [
-            'success' => config('services.mercadopago.success_url'),
-            'failure' => config('services.mercadopago.failure_url'),
-            'pending' => config('services.mercadopago.failure_url'),
-        ];
-
-        $externalReference = 'ORDER_' . time() . '_' . uniqid();
-
         return [
-            "items" => $formattedItems,
-            "payer" => [
-                "name" => $payer['name'],
-                "surname" => $payer['surname'],
-                "email" => $payer['email'],
+            'items'                => $formattedItems,
+            'payer' => [
+                'name'    => $payer['name'],
+                'surname' => $payer['surname'],
+                'email'   => $payer['email'],
             ],
-            "payment_methods" => $paymentMethods,
-            "back_urls" => $backUrls,
-            "statement_descriptor" => "ESSENZA ROYALE",
-            "external_reference" => $externalReference,
-            "expires" => false,
-            "auto_return" => 'approved',
+            'payment_methods' => [
+                'excluded_payment_methods' => [],
+                'excluded_payment_types'   => [],
+                'installments'             => 12,
+            ],
+            'back_urls' => [
+                'success' => config('services.mercadopago.success_url'),
+                'failure' => config('services.mercadopago.failure_url'),
+                'pending' => config('services.mercadopago.failure_url'),
+            ],
+            // MP requiere HTTPS y URL accesible públicamente. En local no
+            // funciona — testear vía deploy o ngrok.
+            'notification_url'     => config('services.mercadopago.webhook_url')
+                                       ?? route('mercadopago.webhook'),
+            'statement_descriptor' => 'ESSENZA ROYALE',
+            'external_reference'   => $externalReference,
+            'expires'              => false,
+            'auto_return'          => 'approved',
         ];
     }
 }
