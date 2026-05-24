@@ -21,8 +21,8 @@
                 class="needs-validation"
                 novalidate>
                 
-            @csrf
-            @method('PUT')
+                @csrf
+                @method('PUT')
                 
                 <div class="row mb-3">
                     <div class="col-md-6">
@@ -98,17 +98,6 @@
                                 style="max-width:200px;">
                         </div>
                     @endif
-                        @error('imagen_url')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        
-                        @if($perfume->imagen_url)
-                            <div class="mt-2">
-                                <p class="mb-1">Imagen actual:</p>
-                                <img src="{{ $perfume->imagen_url }}" alt="{{ $perfume->nombre }}" 
-                                     class="img-thumbnail" style="max-width: 200px;">
-                            </div>
-                        @endif
                     </div>
                 </div>
                 
