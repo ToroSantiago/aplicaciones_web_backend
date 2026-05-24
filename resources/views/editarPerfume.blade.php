@@ -18,8 +18,11 @@
             <form method="POST"
                 action="{{ route('perfumes.update', $perfume->id) }}"
                 enctype="multipart/form-data"
-                @csrf
-                @method('PUT')
+                class="needs-validation"
+                novalidate>
+                
+            @csrf
+            @method('PUT')
                 
                 <div class="row mb-3">
                     <div class="col-md-6">
