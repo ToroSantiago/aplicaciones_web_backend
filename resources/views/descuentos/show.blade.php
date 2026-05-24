@@ -62,42 +62,127 @@
                     <h5 class="mb-0">Variantes alcanzadas ({{ $descuento->variantes->count() }})</h5>
                 </div>
                 <div class="card-body">
-                    @if($descuento->variantes->isEmpty())
-                        <div class="alert alert-warning mb-0">No hay variantes asignadas.</div>
-                    @else
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped mb-0">
-                                <thead>
+
+                @if($descuento->variantes->isEmpty())
+                    <div class="alert alert-warning mb-0">
+                        No hay variantes asignadas.
+                    </div>
+                @else
+
+                    {{-- Desktop --}}
+                    <div class="table-responsive d-none d-md-block">
+                        <table class="table table-sm table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Perfume</th>
+                                    <th>Volumen</th>
+                                    <th>Precio original</th>
+                                    <th>Precio con descuento</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($descuento->variantes as $v)
+                                    @php
+                                        $precioConDescuento = round(
+                                            $v->precio * (1 - $descuento->porcentaje / 100),
+                                            2
+                                        );
+                                    @endphp
+
                                     <tr>
-                                        <th>Perfume</th>
-                                        <th>Volumen</th>
-                                        <th>Precio original</th>
-                                        <th>Precio con descuento</th>
+                                        <td>
+                                            <strong>{{ $v->perfume->nombre }}</strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                {{ $v->perfume->marca }}
+                                            </small>
+                                        </td>
+
+                                        <td>{{ $v->volumen }}ml</td>
+
+                                        <td>
+                                            <s class="text-muted">
+                                                ${{ number_format($v->precio, 2, ',', '.') }}
+                                            </s>
+                                        </td>
+
+                                        <td>
+                                            <strong class="text-success">
+                                                ${{ number_format($precioConDescuento, 2, ',', '.') }}
+                                            </strong>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($descuento->variantes as $v)
-                                        @php
-                                            $precioConDescuento = round($v->precio * (1 - $descuento->porcentaje / 100), 2);
-                                        @endphp
-                                        <tr>
-                                            <td>
-                                                <strong>{{ $v->perfume->nombre }}</strong>
-                                                <br><small class="text-muted">{{ $v->perfume->marca }}</small>
-                                            </td>
-                                            <td>{{ $v->volumen }}ml</td>
-                                            <td><s class="text-muted">${{ number_format($v->precio, 2, ',', '.') }}</s></td>
-                                            <td>
-                                                <strong class="text-success">
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- Mobile --}}
+                    <div class="d-md-none">
+                        @foreach($descuento->variantes as $v)
+                            @php
+                                $precioConDescuento = round(
+                                    $v->precio * (1 - $descuento->porcentaje / 100),
+                                    2
+                                );
+                            @endphp
+
+                            <div class="card mb-3 border-start border-4">
+                                <div class="card-body">
+
+                                    <h6 class="mb-1">
+                                        {{ $v->perfume->nombre }}
+                                    </h6>
+
+                                    <small class="text-muted d-block mb-3">
+                                        {{ $v->perfume->marca }}
+                                    </small>
+
+                                    <div class="row g-2">
+
+                                        <div class="col-6">
+                                            <small class="text-muted">Volumen</small>
+                                            <div>
+                                                <span class="badge bg-secondary">
+                                                    {{ $v->volumen }}ml
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-6">
+                                            <small class="text-muted">Descuento</small>
+                                            <div>
+                                                <span class="badge bg-danger">
+                                                    -{{ rtrim(rtrim(number_format($descuento->porcentaje, 2, ',', '.'), '0'), ',') }}%
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 mt-2">
+                                            <small class="text-muted">Precio original</small>
+                                            <div>
+                                                <s>
+                                                    ${{ number_format($v->precio, 2, ',', '.') }}
+                                                </s>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <small class="text-muted">Precio final</small>
+                                            <div>
+                                                <strong class="text-success fs-5">
                                                     ${{ number_format($precioConDescuento, 2, ',', '.') }}
                                                 </strong>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
                 </div>
             </div>
         </div>

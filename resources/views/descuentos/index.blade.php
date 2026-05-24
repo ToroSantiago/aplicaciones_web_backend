@@ -43,7 +43,7 @@
                     <i class="fas fa-info-circle me-2"></i>No hay descuentos para mostrar.
                 </div>
             @else
-                <div class="table-responsive">
+                <div class="table-responsive d-none d-md-block">
                     <table class="table table-striped table-hover">
                         <thead>
                             <tr>
@@ -137,6 +137,126 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Versión Mobile -->
+                <div class="d-md-none">
+
+                    @foreach($descuentos as $d)
+
+                        <div class="card mb-3 shadow-sm">
+
+                            <div class="card-body">
+
+                                <div class="d-flex justify-content-between align-items-start">
+
+                                    <div>
+                                        <h6 class="mb-1">
+                                            {{ $d->nombre }}
+                                        </h6>
+
+                                        <small class="text-muted">
+                                            #{{ $d->id }}
+                                        </small>
+                                    </div>
+
+                                    <span class="badge bg-danger">
+                                        -{{ rtrim(rtrim(number_format($d->porcentaje, 2, ',', '.'), '0'), ',') }}%
+                                    </span>
+
+                                </div>
+
+                                <hr>
+
+                                <div class="row g-2 mb-3">
+
+                                    <div class="col-12">
+                                        <small class="text-muted d-block">
+                                            Vigencia
+                                        </small>
+
+                                        <strong>
+                                            {{ $d->fecha_inicio->format('d/m/Y') }}
+                                            —
+                                            {{ $d->fecha_fin->format('d/m/Y') }}
+                                        </strong>
+                                    </div>
+
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">
+                                            Estado
+                                        </small>
+
+                                        @switch($d->estado)
+                                            @case('vigente')
+                                                <span class="badge bg-success">
+                                                    Vigente
+                                                </span>
+                                                @break
+
+                                            @case('futuro')
+                                                <span class="badge bg-info">
+                                                    Futuro
+                                                </span>
+                                                @break
+
+                                            @case('expirado')
+                                                <span class="badge bg-secondary">
+                                                    Expirado
+                                                </span>
+                                                @break
+
+                                            @case('inactivo')
+                                                <span class="badge bg-dark">
+                                                    Inactivo
+                                                </span>
+                                                @break
+                                        @endswitch
+                                    </div>
+
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">
+                                            Variantes
+                                        </small>
+
+                                        <span class="badge bg-light text-dark">
+                                            {{ $d->variantes->count() }} variante(s)
+                                        </span>
+                                    </div>
+
+                                </div>
+
+                                <div class="d-grid gap-2">
+
+                                    <a href="{{ route('descuentos.show', $d->id) }}"
+                                    class="btn btn-outline-info btn-sm">
+                                        <i class="fas fa-eye me-2"></i>
+                                        Ver
+                                    </a>
+
+                                    <a href="{{ route('descuentos.edit', $d->id) }}"
+                                    class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-edit me-2"></i>
+                                        Editar
+                                    </a>
+
+                                    <button type="button"
+                                            class="btn btn-outline-danger btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteDescuento{{ $d->id }}">
+                                        <i class="fas fa-trash me-2"></i>
+                                        Eliminar
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    @endforeach
+
+                </div>
+
                 <div class="d-flex justify-content-center mt-3">
                     {{ $descuentos->links() }}
                 </div>

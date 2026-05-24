@@ -194,7 +194,9 @@
                     <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Resumen</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="resumenChart" height="200"></canvas>
+                    <div style="height:300px; position:relative;">
+                        <canvas id="resumenChart"></canvas>
+                    </div>
                     
                     <hr>
                     
@@ -230,7 +232,7 @@
             <h5 class="mb-0"><i class="fas fa-shopping-basket me-2"></i>Productos de la Venta</h5>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
+            <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped">
                     <thead>
                         <tr>
@@ -279,6 +281,84 @@
                         </tr>
                     </tfoot>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Versión Mobile -->
+    <div class="d-md-none">
+        @foreach($venta->detalles as $detalle)
+            <div class="card mb-3 shadow-sm">
+                <div class="card-body">
+
+                    <div class="d-flex align-items-center mb-3">
+                        @if($detalle->perfumeVariante->perfume->imagen_url)
+                            <img src="{{ $detalle->perfumeVariante->perfume->imagen_url }}"
+                                alt="{{ $detalle->perfumeVariante->perfume->nombre }}"
+                                class="img-thumbnail me-3"
+                                style="width:70px;height:70px;object-fit:cover;">
+                        @endif
+
+                        <div>
+                            <h6 class="mb-1">
+                                {{ $detalle->perfumeVariante->perfume->nombre }}
+                            </h6>
+
+                            <small class="text-muted">
+                                {{ $detalle->perfumeVariante->perfume->marca }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="row g-2">
+
+                        <div class="col-6">
+                            <small class="text-muted d-block">Volumen</small>
+                            <span class="badge bg-secondary">
+                                {{ $detalle->perfumeVariante->volumen }}ml
+                            </span>
+                        </div>
+
+                        <div class="col-6">
+                            <small class="text-muted d-block">Cantidad</small>
+                            <strong>{{ $detalle->cantidad }}</strong>
+                        </div>
+
+                        <div class="col-6">
+                            <small class="text-muted d-block">Precio Unitario</small>
+                            <strong>
+                                ${{ number_format($detalle->precio_unitario, 2, ',', '.') }}
+                            </strong>
+                        </div>
+
+                        <div class="col-6">
+                            <small class="text-muted d-block">Subtotal</small>
+                            <strong class="text-primary">
+                                ${{ number_format($detalle->subtotal, 2, ',', '.') }}
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        @endforeach
+
+        <div class="card border-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <span>Productos</span>
+                    <strong>{{ $venta->cantidad_total_items }}</strong>
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between">
+                    <span>Total Venta</span>
+                    <strong class="text-primary">
+                        ${{ number_format($venta->total, 2, ',', '.') }}
+                    </strong>
+                </div>
             </div>
         </div>
     </div>

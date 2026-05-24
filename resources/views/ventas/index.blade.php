@@ -76,35 +76,44 @@
                     <i class="fas fa-info-circle me-2"></i>No hay ventas registradas con los filtros aplicados.
                 </div>
             @else
+            <!-- Tabla Desktop -->
+            <div class="d-none d-md-block">
                 <div class="table-responsive">
                     <table class="table table-striped table-hover">
                         <thead>
                             <tr>
-                                <th scope="col">ID</th>
-                                <th scope="col">Fecha</th>
-                                <th scope="col">Cliente</th>
-                                <th scope="col">Items</th>
-                                <th scope="col">Total</th>
-                                <th scope="col">Estado</th>
-                                <th scope="col">Método Pago</th>
-                                <th scope="col">Acciones</th>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Método Pago</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             @foreach ($ventas as $venta)
                                 <tr>
                                     <td>{{ $venta->id }}</td>
                                     <td>{{ $venta->fecha_formateada }}</td>
+
                                     <td>
                                         <strong>{{ $venta->cliente_nombre_completo }}</strong><br>
                                         <small class="text-muted">{{ $venta->usuario->email }}</small>
                                     </td>
+
                                     <td>
-                                        <span class="badge bg-secondary">{{ $venta->cantidad_total_items }} items</span>
+                                        <span class="badge bg-secondary">
+                                            {{ $venta->cantidad_total_items }} items
+                                        </span>
                                     </td>
+
                                     <td>
                                         <strong>${{ number_format($venta->total, 2, ',', '.') }}</strong>
                                     </td>
+
                                     <td>
                                         @if($venta->estado == 'completada')
                                             <span class="badge bg-success">Completada</span>
@@ -114,132 +123,118 @@
                                             <span class="badge bg-danger">Cancelada</span>
                                         @endif
                                     </td>
+
                                     <td>{{ ucfirst($venta->metodo_pago ?? 'N/A') }}</td>
+
                                     <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ route('ventas.show', $venta->id) }}"
-                                               class="btn btn-sm btn-outline-info"
-                                               title="Ver detalles">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            @auth
-                                                @if(Auth::user()->isAdmin())
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-outline-primary dropdown-toggle"
-                                                            data-bs-toggle="dropdown"
-                                                            aria-expanded="false"
-                                                            title="Cambiar estado">
-                                                        <i class="fas fa-exchange-alt"></i>
-                                                    </button>
-                                                    <ul class="dropdown-menu">
-                                                        @if($venta->estado != 'completada')
-                                                            <li>
-                                                                <form action="{{ route('ventas.updateStatus', $venta->id) }}"
-                                                                      method="POST" class="d-inline">
-                                                                    @csrf
-                                                                    @method('PATCH')
-                                                                    <input type="hidden" name="estado" value="completada">
-                                                                    <button type="submit" class="dropdown-item">
-                                                                        <i class="fas fa-check text-success me-2"></i>Completar
-                                                                    </button>
-                                                                </form>
-                                                            </li>
-                                                        @endif
-                                                        @if($venta->estado != 'pendiente')
-                                                            <li>
-                                                                <form action="{{ route('ventas.updateStatus', $venta->id) }}"
-                                                                      method="POST" class="d-inline">
-                                                                    @csrf
-                                                                    @method('PATCH')
-                                                                    <input type="hidden" name="estado" value="pendiente">
-                                                                    <button type="submit" class="dropdown-item">
-                                                                        <i class="fas fa-clock text-warning me-2"></i>Pendiente
-                                                                    </button>
-                                                                </form>
-                                                            </li>
-                                                        @endif
-                                                        @if($venta->estado != 'cancelada')
-                                                            <li>
-                                                            <button type="button"
-                                                                        class="dropdown-item"
-                                                                        data-bs-toggle="modal"
-                                                                        data-bs-target="#cancelarVentaModal{{ $venta->id }}">
-
-                                                                    <i class="fas fa-times text-danger me-2"></i>Cancelar
-                                                                </button>
-
-                                                                <div class="modal fade"
-                                                                    id="cancelarVentaModal{{ $venta->id }}"
-                                                                    tabindex="-1"
-                                                                    aria-hidden="true">
-
-                                                                    <div class="modal-dialog">
-                                                                        <div class="modal-content">
-
-                                                                            <div class="modal-header">
-                                                                                <h5 class="modal-title">
-                                                                                    Cancelar venta
-                                                                                </h5>
-
-                                                                                <button type="button"
-                                                                                        class="btn-close"
-                                                                                        data-bs-dismiss="modal">
-                                                                                </button>
-                                                                            </div>
-
-                                                                            <div class="modal-body">
-                                                                                ¿Seguro que querés cancelar la venta
-                                                                                <strong>#{{ $venta->id }}</strong>?
-
-                                                                                <br><br>
-
-                                                                                <span class="text-danger">
-                                                                                    El stock será devuelto automáticamente.
-                                                                                </span>
-                                                                            </div>
-
-                                                                            <div class="modal-footer">
-
-                                                                                <button type="button"
-                                                                                        class="btn btn-secondary"
-                                                                                        data-bs-dismiss="modal">
-                                                                                    Volver
-                                                                                </button>
-
-                                                                                <form action="{{ route('ventas.updateStatus', $venta->id) }}"
-                                                                                    method="POST">
-
-                                                                                    @csrf
-                                                                                    @method('PATCH')
-
-                                                                                    <input type="hidden"
-                                                                                        name="estado"
-                                                                                        value="cancelada">
-
-                                                                                    <button type="submit"
-                                                                                            class="btn btn-danger">
-                                                                                        Confirmar cancelación
-                                                                                    </button>
-
-                                                                                </form>
-
-                                                                            </div>
-
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </li>
-                                                        @endif
-                                                    </ul>
-                                                @endif
-                                            @endauth
-                                        </div>
+                                        <a href="{{ route('ventas.show', $venta->id) }}"
+                                        class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- Cards Mobile -->
+            <div class="d-block d-md-none">
+
+                @foreach ($ventas as $venta)
+
+                    <div class="card mb-3 shadow-sm border-0">
+
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+
+                                <div>
+                                    <h5 class="mb-1">
+                                        Venta #{{ $venta->id }}
+                                    </h5>
+
+                                    <small class="text-muted">
+                                        {{ $venta->fecha_formateada }}
+                                    </small>
+                                </div>
+
+                                <div>
+                                    @if($venta->estado == 'completada')
+                                        <span class="badge bg-success">Completada</span>
+                                    @elseif($venta->estado == 'pendiente')
+                                        <span class="badge bg-warning">Pendiente</span>
+                                    @else
+                                        <span class="badge bg-danger">Cancelada</span>
+                                    @endif
+                                </div>
+
+                            </div>
+
+                            <div class="mb-2">
+                                <strong>Cliente:</strong><br>
+                                {{ $venta->cliente_nombre_completo }}
+                            </div>
+
+                            <div class="mb-2">
+                                <strong>Email:</strong><br>
+                                <small>{{ $venta->usuario->email }}</small>
+                            </div>
+
+                            <div class="row text-center mb-3">
+
+                                <div class="col-4">
+                                    <small class="text-muted d-block">
+                                        Items
+                                    </small>
+
+                                    <span class="badge bg-secondary">
+                                        {{ $venta->cantidad_total_items }}
+                                    </span>
+                                </div>
+
+                                <div class="col-4">
+                                    <small class="text-muted d-block">
+                                        Total
+                                    </small>
+
+                                    <strong>
+                                        ${{ number_format($venta->total, 2, ',', '.') }}
+                                    </strong>
+                                </div>
+
+                                <div class="col-4">
+                                    <small class="text-muted d-block">
+                                        Pago
+                                    </small>
+
+                                    <small>
+                                        {{ ucfirst($venta->metodo_pago ?? 'N/A') }}
+                                    </small>
+                                </div>
+
+                            </div>
+
+                            <div class="d-grid">
+
+                                <a href="{{ route('ventas.show', $venta->id) }}"
+                                class="btn btn-outline-info">
+
+                                    <i class="fas fa-eye me-2"></i>
+                                    Ver detalles
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                @endforeach
+
+            </div>
                 
                 <!-- Paginación -->
                 <div class="d-flex justify-content-center mt-4">
