@@ -15,7 +15,9 @@
             <h5 class="mb-0">Formulario de Edición - ID: {{ $perfume->id }}</h5>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ route('perfumes.update', $perfume->id) }}" class="needs-validation" novalidate>
+            <form method="POST"
+                action="{{ route('perfumes.update', $perfume->id) }}"
+                enctype="multipart/form-data"
                 @csrf
                 @method('PUT')
                 
@@ -63,11 +65,36 @@
                     </div>
                     
                     <div class="col-md-6">
-                        <label for="imagen_url" class="form-label">URL de Imagen (Cloudinary):</label>
-                        <input type="url" class="form-control @error('imagen_url') is-invalid @enderror" 
-                               id="imagen_url" name="imagen_url" value="{{ old('imagen_url', $perfume->imagen_url) }}" 
-                               placeholder="https://res.cloudinary.com/...">
-                        <small class="text-muted">Opcional: URL de la imagen desde Cloudinary</small>
+                    <label for="imagen" class="form-label">
+                        Nueva Imagen
+                    </label>
+
+                    <input type="file"
+                        class="form-control @error('imagen') is-invalid @enderror"
+                        id="imagen"
+                        name="imagen"
+                        accept="image/*">
+
+                    <small class="text-muted">
+                        Dejar vacío para conservar la imagen actual.
+                    </small>
+
+                    @error('imagen')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+
+                    @if($perfume->imagen_url)
+                        <div class="mt-3">
+                            <p class="mb-1">Imagen actual:</p>
+
+                            <img src="{{ $perfume->imagen_url }}"
+                                alt="{{ $perfume->nombre }}"
+                                class="img-thumbnail"
+                                style="max-width:200px;">
+                        </div>
+                    @endif
                         @error('imagen_url')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

@@ -15,7 +15,11 @@
             <h5 class="mb-0">Formulario de Creación</h5>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ route('perfumes.store') }}" class="needs-validation" novalidate>
+            <form method="POST"
+                action="{{ route('perfumes.store') }}"
+                enctype="multipart/form-data"
+                class="needs-validation"
+                novalidate>
                 @csrf
                 
                 <div class="row mb-3">
@@ -63,13 +67,24 @@
                     </div>
                     
                     <div class="col-md-6">
-                        <label for="imagen_url" class="form-label">URL de Imagen (Cloudinary):</label>
-                        <input type="url" class="form-control @error('imagen_url') is-invalid @enderror" 
-                               id="imagen_url" name="imagen_url" value="{{ old('imagen_url') }}" 
-                               placeholder="https://res.cloudinary.com/...">
-                        <small class="text-muted">Opcional: URL de la imagen desde Cloudinary</small>
-                        @error('imagen_url')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <label for="imagen" class="form-label">
+                            Imagen del Perfume
+                        </label>
+
+                        <input type="file"
+                            class="form-control @error('imagen') is-invalid @enderror"
+                            id="imagen"
+                            name="imagen"
+                            accept="image/*">
+
+                        <small class="text-muted">
+                            JPG, PNG o WEBP
+                        </small>
+
+                        @error('imagen')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
                         @enderror
                     </div>
                 </div>
