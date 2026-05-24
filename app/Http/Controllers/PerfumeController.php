@@ -9,9 +9,6 @@ use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class PerfumeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $perfumes = Perfume::with('variantes.descuentos')->get();
@@ -19,17 +16,11 @@ class PerfumeController extends Controller
         return view('listarPerfumes', compact('perfumes'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('crearPerfume');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -52,14 +43,12 @@ class PerfumeController extends Controller
         $imagenUrl = null;
 
         if ($request->hasFile('imagen')) {
-            $upload = Cloudinary::uploadApi()->upload(
+            $imagenUrl = Cloudinary::upload(
                 $request->file('imagen')->getRealPath(),
                 [
                     'folder' => 'perfumes'
                 ]
-            );
-
-            $imagenUrl = $upload['secure_url'];
+            )->getSecurePath();
         }
 
         $perfume = Perfume::create([
@@ -97,9 +86,6 @@ class PerfumeController extends Controller
             ->with('success', 'Perfume creado correctamente con todas sus variantes');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         $perfume = Perfume::with('variantes.descuentos')->findOrFail($id);
@@ -107,9 +93,6 @@ class PerfumeController extends Controller
         return view('mostrarPerfume', compact('perfume'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
         $perfume = Perfume::with('variantes.descuentos')->findOrFail($id);
@@ -117,9 +100,6 @@ class PerfumeController extends Controller
         return view('editarPerfume', compact('perfume'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Perfume $perfume)
     {
         $request->validate([
@@ -147,14 +127,12 @@ class PerfumeController extends Controller
         ];
 
         if ($request->hasFile('imagen')) {
-            $upload = Cloudinary::uploadApi()->upload(
+            $perfumeData['imagen_url'] = Cloudinary::upload(
                 $request->file('imagen')->getRealPath(),
                 [
                     'folder' => 'perfumes'
                 ]
-            );
-
-            $perfumeData['imagen_url'] = $upload['secure_url'];
+            )->getSecurePath();
         }
 
         $perfume->update($perfumeData);
@@ -185,9 +163,6 @@ class PerfumeController extends Controller
             ->with('success', 'Perfume actualizado correctamente');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Perfume $perfume)
     {
         $perfume->delete();
