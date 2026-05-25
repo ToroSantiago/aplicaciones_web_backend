@@ -49,18 +49,3 @@ Route::middleware('auth:sanctum')->group(function () {
     // /ventas/cliente/{email} (público), este solo devuelve las propias.
     Route::get('/mis-ventas', [VentaApiController::class, 'misVentas']);
 });
-
-// JSON para notificar descuentos
-Route::get('/descuentos', function () {
-    $descuentos = \App\Models\Descuento::with([
-        'perfumeVariante',
-        'perfumeVariante.perfume'
-    ])
-    ->orderBy('created_at', 'desc')
-    ->get();
-    
-    return response()->json([
-        'success' => true,
-        'data' => $descuentos
-    ]);
-});
