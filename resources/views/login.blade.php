@@ -268,6 +268,17 @@
             display: inline-block;
             margin-right: 0.5rem;
         }
+
+        .logo-img {
+            width: 160px;
+            height: 30px;
+            object-fit: cover;
+            object-position: top;
+            transform: scale(2);
+            transform-origin: top center;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
         
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -390,11 +401,24 @@
                 margin-bottom: 1rem;
             }
         }
+
+        @media (max-width: 480px) {
+            .logo-img {
+                transform: scale(2);
+                margin-bottom: 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
         <div class="logo-section">
+            <img 
+                src="https://res.cloudinary.com/drnzeqcpu/image/upload/v1779636864/logo_t96wg3.svg" 
+                alt="Logo"
+                class="logo-img"
+            >
+
             <h1>Bienvenido</h1>
             <p>Inicia sesión en tu cuenta</p>
         </div>

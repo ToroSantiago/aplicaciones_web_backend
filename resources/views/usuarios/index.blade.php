@@ -32,7 +32,7 @@
                     <i class="fas fa-info-circle me-2"></i>No hay usuarios registrados.
                 </div>
             @else
-                <div class="table-responsive">
+                <div class="table-responsive d-none d-md-block">
                     <table class="table table-striped table-hover">
                         <thead>
                             <tr>
@@ -54,7 +54,9 @@
                                     <td>{{ $usuario->email }}</td>
                                     <td>
                                         @if($usuario->rol == 'Administrador')
-                                            <span class="badge bg-primary">Administrador</span>
+                                            <span class="badge bg-success">Administrador</span>
+                                        @elseif($usuario->rol == 'Empleado')
+                                            <span class="badge bg-primary">Empleado</span>
                                         @else
                                             <span class="badge bg-secondary">Cliente</span>
                                         @endif
@@ -63,25 +65,77 @@
                                         @if($usuario->email_verified_at)
                                             <span class="badge bg-success">Verificado</span>
                                         @else
-                                            <span class="badge bg-warning">Pendiente</span>
+                                            <span class="badge bg-danger">Pendiente</span>
                                         @endif
                                     </td>
                                     <td>
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <a href="{{ route('usuarios.show', $usuario->id) }}" class="btn btn-info" title="Ver detalles">
+                                        <div class="btn-group" role="group" aria-label="Acciones">
+                                            <a href="{{ route('usuarios.show', $usuario->id) }}" 
+                                               class="btn btn-sm btn-outline-info" 
+                                               title="Ver detalles">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('usuarios.edit', $usuario->id) }}" class="btn btn-primary" title="Editar">
+                                            <a href="{{ route('usuarios.edit', $usuario->id) }}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <form action="{{ route('usuarios.destroy', $usuario->id) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger" title="Eliminar" 
-                                                       onclick="return confirm('¿Estás seguro de eliminar este usuario?')">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteModal{{ $usuario->id }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                        <div class="modal fade"
+                                            id="deleteModal{{ $usuario->id }}"
+                                            tabindex="-1"
+                                            aria-hidden="true">
+
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">
+                                                            Confirmar eliminación
+                                                        </h5>
+
+                                                        <button type="button"
+                                                                class="btn-close"
+                                                                data-bs-dismiss="modal">
+                                                        </button>
+                                                    </div>
+
+                                                    <div class="modal-body">
+                                                        ¿Seguro que querés eliminar a
+                                                        <strong>{{ $usuario->username }}</strong>?
+                                                    </div>
+
+                                                    <div class="modal-footer">
+
+                                                        <button type="button"
+                                                                class="btn btn-secondary"
+                                                                data-bs-dismiss="modal">
+                                                            Cancelar
+                                                        </button>
+
+                                                        <form action="{{ route('usuarios.destroy', $usuario->id) }}"
+                                                            method="POST">
+
+                                                            @csrf
+                                                            @method('DELETE')
+
+                                                            <button type="submit"
+                                                                    class="btn btn-danger">
+                                                                Eliminar
+                                                            </button>
+
+                                                        </form>
+
+                                                    </div>
+
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -91,6 +145,110 @@
                 </div>
             @endif
         </div>
+
+        <!-- Versión Mobile -->
+        <div class="d-md-none">
+
+            @foreach ($usuarios as $usuario)
+
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="mb-0">
+                                    {{ $usuario->nombre }} {{ $usuario->apellido }}
+                                </h6>
+                            </div>
+
+                            <span class="badge bg-secondary">
+                                #{{ $usuario->id }}
+                            </span>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-2">
+                            <small class="text-muted d-block">
+                                Email
+                            </small>
+
+                            <strong>
+                                {{ $usuario->email }}
+                            </strong>
+                        </div>
+
+                        <div class="row mb-3">
+
+                            <div class="col-6">
+                                <small class="text-muted d-block">
+                                    Rol
+                                </small>
+
+                                @if($usuario->rol == 'Administrador')
+                                    <span class="badge bg-success">
+                                        Administrador
+                                    </span>
+                                @elseif($usuario->rol == 'Empleado')
+                                    <span class="badge bg-primary">
+                                        Empleado
+                                    </span>
+                                @else
+                                    <span class="badge bg-secondary">
+                                        Cliente
+                                    </span>
+                                @endif
+                            </div>
+
+                            <div class="col-6">
+                                <small class="text-muted d-block">
+                                    Estado email
+                                </small>
+
+                                @if($usuario->email_verified_at)
+                                    <span class="badge bg-success">
+                                        Verificado
+                                    </span>
+                                @else
+                                    <span class="badge bg-danger">
+                                        Sin verificar
+                                    </span>
+                                @endif
+                            </div>
+
+                        </div>
+
+                        <div class="d-grid gap-2">
+
+                            <a href="{{ route('usuarios.show', $usuario->id) }}"
+                            class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-eye me-2"></i>
+                                Ver detalles
+                            </a>
+
+                            <a href="{{ route('usuarios.edit', $usuario->id) }}"
+                            class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-edit me-2"></i>
+                                Editar
+                            </a>
+
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal{{ $usuario->id }}">
+                                <i class="fas fa-trash me-2"></i>
+                                Eliminar
+                            </button>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            @endforeach
+
+        </div>
+
         <div class="card-footer text-muted">
             Total de registros: {{ $usuarios->count() }}
         </div>

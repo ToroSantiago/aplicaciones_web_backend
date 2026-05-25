@@ -56,10 +56,12 @@
                         <tr>
                             <th style="width: 30%">Rol:</th>
                             <td>
-                                @if($usuario->rol === 'Administrador')
-                                    <span class="badge bg-danger">Administrador</span>
+                                @if($usuario->rol == 'Administrador')
+                                    <span class="badge bg-success">Administrador</span>
+                                @elseif($usuario->rol == 'Empleado')
+                                    <span class="badge bg-primary">Empleado</span>
                                 @else
-                                    <span class="badge bg-success">Cliente</span>
+                                    <span class="badge bg-secondary">Cliente</span>
                                 @endif
                             </td>
                         </tr>
@@ -90,14 +92,64 @@
                     <i class="fas fa-edit me-1"></i>Editar
                 </a>
 
-                <form action="{{ route('usuarios.destroy', $usuario->id) }}" method="POST">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger"
-                            onclick="return confirm('¿Estás seguro de eliminar este usuario?')">
-                        <i class="fas fa-trash me-1"></i>Eliminar
-                    </button>
-                </form>
+            <button type="button"
+                    class="btn btn-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteModal{{ $usuario->id }}">
+
+                <i class="fas fa-trash me-1"></i>Eliminar
+            </button>
+
+                <div class="modal fade"
+                    id="deleteModal{{ $usuario->id }}"
+                    tabindex="-1"
+                    aria-hidden="true">
+
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    Confirmar eliminación
+                                </h5>
+
+                                <button type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal">
+                                </button>
+                            </div>
+
+                            <div class="modal-body">
+                                ¿Seguro que querés eliminar al usuario
+                                <strong>{{ $usuario->username }}</strong>?
+                            </div>
+
+                            <div class="modal-footer">
+
+                                <button type="button"
+                                        class="btn btn-secondary"
+                                        data-bs-dismiss="modal">
+                                    Cancelar
+                                </button>
+
+                                <form action="{{ route('usuarios.destroy', $usuario->id) }}"
+                                    method="POST">
+
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <button type="submit"
+                                            class="btn btn-danger">
+                                        Eliminar
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -108,8 +108,9 @@
             text-decoration: none;
             border-left: 4px solid transparent;
         }
-        
-        .sidebar-link:hover, .sidebar-link.active {
+
+        .sidebar-link:hover,
+        .sidebar-link.active {
             background-color: var(--medium-dark-gray);
             border-left-color: var(--very-light-gray);
         }
@@ -119,6 +120,32 @@
             padding: 20px;
         }
         
+
+        /* ===================== */
+        /* LOGO NAVBAR (FIX FINAL) */
+        /* ===================== */
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-logo {
+            height: 42px;
+            width: auto;
+            max-width: 180px;
+            object-fit: contain;
+            display: block;
+            transform: scale(1.5);
+            transition: transform 0.2s ease;
+        }
+
+        .navbar-brand:hover .navbar-logo {
+            transform: scale(1.75);
+        }
+
+        /* RESPONSIVE */
         @media (max-width: 768px) {
             .sidebar {
                 width: 100%;
@@ -129,80 +156,161 @@
             .content-wrapper {
                 margin-left: 0;
             }
+
+            .navbar-logo {
+                height: 34px;
+                max-width: 150px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar-logo {
+                height: 30px;
+                max-width: 130px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ route('perfumes.index') }}">
-                <i class="fas fa-spray-can me-2"></i>Admin Perfumería
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        @auth
-                            @if(Auth::user()->rol === 'Administrador')
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-user me-1"></i>{{ Auth::user()->nombre }} {{ Auth::user()->apellido }}
-                                </a>
-                            @endif
-                        @endauth
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/login">
-                            <i class="fas fa-sign-out-alt me-1"></i>Cerrar sesión
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+
+        <!-- LOGO -->
+        <a class="navbar-brand" href="{{ route('perfumes.index') }}">
+            <img
+                src="https://res.cloudinary.com/drnzeqcpu/image/upload/v1779636864/logo_t96wg3.svg"
+                class="navbar-logo"
+                alt="Logo"
+            >
+        </a>
+
+        <!-- HAMBURGUESA -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- MENU -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+
+                <li class="nav-item">
+                    @auth
+                        <span class="nav-link" style="cursor: default;">
+                            <i class="fas fa-user me-1"></i>
+                            {{ Auth::user()->nombre }} {{ Auth::user()->apellido }}
+                            <span class="badge bg-secondary ms-1">{{ Auth::user()->rol }}</span>
+                        </span>
+                    @endauth
+                </li>
+
+                @auth
+                    <li class="nav-item d-md-none">
+                        <a class="nav-link" href="{{ route('ventas.estadisticas') }}">
+                            <i class="fas fa-chart-line me-2"></i>Estadísticas
                         </a>
                     </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-                <div class="position-sticky">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="sidebar-link active" href="{{ route('perfumes.index') }}">
-                                <i class="fas fa-spray-can me-2"></i>Perfumes
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="sidebar-link" href="#">
-                                <i class="fas fa-chart-bar me-2"></i>Estadísticas
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                             <a class="sidebar-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
+                    <li class="nav-item d-md-none">
+                        <a class="nav-link" href="{{ route('perfumes.index') }}">
+                            <i class="fas fa-spray-can me-2"></i>Perfumes
+                        </a>
+                    </li>
+
+                    <li class="nav-item d-md-none">
+                        <a class="nav-link" href="{{ route('ventas.index') }}">
+                            <i class="fas fa-shopping-cart me-2"></i>Ventas
+                        </a>
+                    </li>
+
+                    @if(Auth::user()->isAdmin())
+                        <li class="nav-item d-md-none">
+                            <a class="nav-link" href="{{ route('usuarios.index') }}">
                                 <i class="fas fa-users me-2"></i>Usuarios
                             </a>
                         </li>
-                    </ul>
-                </div>
-            </div>
 
-            <!-- Contenido principal -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-                @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
+                        <li class="nav-item d-md-none">
+                            <a class="nav-link" href="{{ route('descuentos.index') }}">
+                                <i class="fas fa-tags me-2"></i>Descuentos
+                            </a>
+                        </li>
+                    @endif
+                @endauth
 
-                @yield('content')
-            </main>
+                <li class="nav-item">
+                    @auth
+                        <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                            @csrf
+                            <button type="submit" class="nav-link btn btn-link" style="text-decoration:none;">
+                                <i class="fas fa-sign-out-alt me-1"></i>Cerrar sesión
+                            </button>
+                        </form>
+                    @else
+                        <a class="nav-link" href="{{ route('login') }}">
+                            <i class="fas fa-sign-in-alt me-1"></i>Iniciar sesión
+                        </a>
+                    @endauth
+                </li>
+
+            </ul>
         </div>
     </div>
+</nav>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<!-- CONTENIDO -->
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <div class="position-sticky">
+                <ul class="nav flex-column">
+
+                    @auth
+                        <li class="nav-item">
+                            <a class="sidebar-link" href="{{ route('ventas.estadisticas') }}">
+                                <i class="fas fa-chart-line me-2"></i>Estadísticas
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="sidebar-link" href="{{ route('perfumes.index') }}">
+                                <i class="fas fa-spray-can me-2"></i>Perfumes
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="sidebar-link" href="{{ route('ventas.index') }}">
+                                <i class="fas fa-shopping-cart me-2"></i>Ventas
+                            </a>
+                        </li>
+
+                        @if(Auth::user()->isAdmin())
+                            <li class="nav-item">
+                                <a class="sidebar-link" href="{{ route('usuarios.index') }}">
+                                    <i class="fas fa-users me-2"></i>Usuarios
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="sidebar-link" href="{{ route('descuentos.index') }}">
+                                    <i class="fas fa-tags me-2"></i>Descuentos
+                                </a>
+                            </li>
+                        @endif
+                    @endauth
+                </ul>
+            </div>
+        </div>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            @yield('content')
+        </main>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

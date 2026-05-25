@@ -4,21 +4,35 @@
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h2"><i class="fas fa-spray-can me-2"></i>Gestión de Perfumes</h1>
-        <a href="{{ route('perfumes.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Nuevo Perfume
-        </a>
+        <h1 class="h2">
+            <i class="fas fa-spray-can me-2"></i>
+            Gestión de Perfumes
+        </h1>
+
+        @auth
+            @if(Auth::user()->isAdmin())
+                <a href="{{ route('perfumes.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    Nuevo Perfume
+                </a>
+            @endif
+        @endauth
     </div>
 
     <div class="card">
         <div class="card-header">
-            <div class="row align-items-center">
-                <div class="col">
+            <div class="row align-items-center g-2">
+                <div class="col-12 col-md">
                     <h5 class="mb-0">Lista de Perfumes</h5>
                 </div>
-                <div class="col-auto">
+
+                <div class="col-12 col-md-auto">
                     <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Buscar..." id="searchInput">
+                        <input type="text"
+                               class="form-control"
+                               placeholder="Buscar..."
+                               id="searchInput">
+
                         <button class="btn btn-primary" type="button">
                             <i class="fas fa-search"></i>
                         </button>
@@ -26,78 +40,489 @@
                 </div>
             </div>
         </div>
+
         <div class="card-body">
             @if($perfumes->isEmpty())
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>No hay perfumes registrados.
+                    <i class="fas fa-info-circle me-2"></i>
+                    No hay perfumes registrados.
                 </div>
             @else
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th scope="col">ID</th>
-                                <th scope="col">Nombre</th>
-                                <th scope="col">Marca</th>
-                                <th scope="col">Volumen</th>
-                                <th scope="col">Precio</th>
-                                <th scope="col">Género</th>
-                                <th scope="col">Stock</th>
-                                <th scope="col">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($perfumes as $perfume)
+
+                <!-- Tabla desktop -->
+                <div class="d-none d-md-block">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead>
                                 <tr>
-                                    <td>{{ $perfume->id }}</td>
-                                    <td>{{ $perfume->nombre }}</td>
-                                    <td>{{ $perfume->marca }}</td>
-                                    <td>{{ $perfume->volumen }} ml</td>
-                                    <td>${{ $perfume->precio }}</td>
-                                    <td>
-                                        @if($perfume->genero == 'M')
-                                            <span class="badge gender-M">Masculino</span>
-                                        @elseif($perfume->genero == 'F')
-                                            <span class="badge gender-F">Femenino</span>
-                                        @else
-                                            <span class="badge gender-U">Unisex</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($perfume->stock)
-                                            <span class="badge badge-stock">Disponible</span>
-                                        @else
-                                            <span class="badge badge-no-stock">Agotado</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <a href="{{ route('perfumes.show', $perfume->id) }}" class="btn btn-info" title="Ver detalles">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{{ route('perfumes.edit', $perfume->id) }}" class="btn btn-primary" title="Editar">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form action="{{ route('perfumes.destroy', $perfume->id) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger" title="Eliminar" 
-                                                       onclick="return confirm('¿Estás seguro de eliminar este perfume?')">
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Imagen</th>
+                                    <th scope="col">Nombre</th>
+                                    <th scope="col">Marca</th>
+                                    <th scope="col">Género</th>
+                                    <th scope="col">Variantes</th>
+                                    <th scope="col">Rango de Precios</th>
+                                    <th scope="col">Stock Total</th>
+                                    <th scope="col">Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach ($perfumes as $perfume)
+                                    <tr>
+                                        <td>{{ $perfume->id }}</td>
+
+                                        <td>
+                                            @if($perfume->imagen_url)
+                                                <img src="{{ $perfume->imagen_url }}"
+                                                     alt="{{ $perfume->nombre }}"
+                                                     class="img-thumbnail"
+                                                     style="width: 50px; height: 50px; object-fit: cover;">
+                                            @else
+                                                <span class="text-muted">
+                                                    Sin imagen
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        <td>{{ $perfume->nombre }}</td>
+
+                                        <td>{{ $perfume->marca }}</td>
+
+                                        <td>
+                                            @if($perfume->genero == 'M')
+                                                <span class="badge bg-primary">
+                                                    Masculino
+                                                </span>
+                                            @elseif($perfume->genero == 'F')
+                                                <span class="badge bg-danger">
+                                                    Femenino
+                                                </span>
+                                            @else
+                                                <span class="badge bg-info">
+                                                    Unisex
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        <td>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#variantesModal{{ $perfume->id }}">
+                                                <i class="fas fa-boxes me-1"></i>
+                                                Ver variantes
+                                            </button>
+                                        </td>
+
+                                        <td>
+                                            ${{ number_format($perfume->precio_minimo, 2, ',', '.') }}
+                                            -
+                                            ${{ number_format($perfume->precio_maximo, 2, ',', '.') }}
+
+                                            @if($perfume->variantes->contains(fn($v) => $v->tiene_descuento))
+                                                <br>
+
+                                                <span class="badge bg-danger mt-1">
+                                                    <i class="fas fa-tag me-1"></i>
+                                                    Con descuento
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        <td>
+                                            @if($perfume->stock_total > 0)
+                                                <span class="badge bg-success">
+                                                    {{ $perfume->stock_total }} unidades
+                                                </span>
+                                            @else
+                                                <span class="badge bg-danger">
+                                                    Agotado
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        <td>
+                                            <div class="btn-group"
+                                                 role="group"
+                                                 aria-label="Acciones">
+
+                                                <a href="{{ route('perfumes.show', $perfume->id) }}"
+                                                   class="btn btn-sm btn-outline-info"
+                                                   title="Ver detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+
+                                                @auth
+                                                    @if(Auth::user()->isAdmin())
+                                                        <a href="{{ route('perfumes.edit', $perfume->id) }}"
+                                                           class="btn btn-sm btn-outline-primary"
+                                                           title="Editar">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+
+                                                        <button type="button"
+                                                                class="btn btn-sm btn-outline-danger"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#deletePerfumeModal{{ $perfume->id }}"
+                                                                title="Eliminar">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    @endif
+                                                @endauth
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Modales de variantes - FUERA de la tabla -->
+                @foreach($perfumes as $perfume)
+                    <div class="modal fade"
+                         id="variantesModal{{ $perfume->id }}"
+                         tabindex="-1"
+                         aria-hidden="true">
+
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        Variantes de {{ $perfume->nombre }}
+                                    </h5>
+
+                                    <button type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="modal">
+                                    </button>
+                                </div>
+
+                                <div class="modal-body p-3">
+
+                                    @if($perfume->variantes && $perfume->variantes->count() > 0)
+
+                                        <!-- Tabla desktop -->
+                                        <div class="d-none d-md-block">
+                                            <div class="table-responsive">
+                                                <table class="table table-sm align-middle">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Volumen</th>
+                                                            <th>Precio</th>
+                                                            <th>Stock</th>
+                                                            <th>Descuento</th>
+                                                        </tr>
+                                                    </thead>
+
+                                                    <tbody>
+                                                        @foreach($perfume->variantes->sortBy('volumen') as $variante)
+                                                            <tr>
+                                                                <td>
+                                                                    {{ $variante->volumen }} ml
+                                                                </td>
+
+                                                                <td>
+                                                                    @if($variante->tiene_descuento)
+                                                                        <s class="text-muted small">
+                                                                            ${{ number_format($variante->precio, 2, ',', '.') }}
+                                                                        </s>
+
+                                                                        <br>
+
+                                                                        <strong class="text-success">
+                                                                            ${{ number_format($variante->precio_final, 2, ',', '.') }}
+                                                                        </strong>
+                                                                    @else
+                                                                        ${{ number_format($variante->precio, 2, ',', '.') }}
+                                                                    @endif
+                                                                </td>
+
+                                                                <td>
+                                                                    @if($variante->stock > 0)
+                                                                        <span class="badge bg-success">
+                                                                            {{ $variante->stock }} unidades
+                                                                        </span>
+                                                                    @else
+                                                                        <span class="badge bg-danger">
+                                                                            Agotado
+                                                                        </span>
+                                                                    @endif
+                                                                </td>
+
+                                                                <td>
+                                                                    @if($variante->tiene_descuento)
+                                                                        <span class="badge bg-danger">
+                                                                            -{{ rtrim(rtrim(number_format($variante->descuento_porcentaje, 2, ',', '.'), '0'), ',') }}%
+                                                                        </span>
+                                                                    @else
+                                                                        <span class="text-muted small">
+                                                                            —
+                                                                        </span>
+                                                                    @endif
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!-- Cards mobile -->
+                                        <div class="d-block d-md-none">
+                                            @foreach($perfume->variantes->sortBy('volumen') as $variante)
+                                                <div class="card border mb-3 shadow-sm">
+                                                    <div class="card-body p-3">
+
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <strong>
+                                                                {{ $variante->volumen }} ml
+                                                            </strong>
+
+                                                            @if($variante->stock > 0)
+                                                                <span class="badge bg-success">
+                                                                    {{ $variante->stock }} unidades
+                                                                </span>
+                                                            @else
+                                                                <span class="badge bg-danger">
+                                                                    Agotado
+                                                                </span>
+                                                            @endif
+                                                        </div>
+
+                                                        <div class="mb-2">
+                                                            <small class="text-muted d-block">
+                                                                Precio
+                                                            </small>
+
+                                                            @if($variante->tiene_descuento)
+                                                                <s class="text-muted small">
+                                                                    ${{ number_format($variante->precio, 2, ',', '.') }}
+                                                                </s>
+
+                                                                <br>
+
+                                                                <strong class="text-success fs-5">
+                                                                    ${{ number_format($variante->precio_final, 2, ',', '.') }}
+                                                                </strong>
+                                                            @else
+                                                                <strong class="fs-5">
+                                                                    ${{ number_format($variante->precio, 2, ',', '.') }}
+                                                                </strong>
+                                                            @endif
+                                                        </div>
+
+                                                        <div>
+                                                            @if($variante->tiene_descuento)
+                                                                <span class="badge bg-danger">
+                                                                    -{{ rtrim(rtrim(number_format($variante->descuento_porcentaje, 2, ',', '.'), '0'), ',') }}%
+                                                                </span>
+                                                            @else
+                                                                <span class="text-muted small">
+                                                                    Sin descuento
+                                                                </span>
+                                                            @endif
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+
+                                    @else
+                                        <div class="text-center text-muted">
+                                            No hay variantes disponibles
+                                        </div>
+                                    @endif
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+                <!-- Fin de modales -->
+
+                <!-- Modales eliminar -->
+                @foreach($perfumes as $perfume)
+                    <div class="modal fade"
+                         id="deletePerfumeModal{{ $perfume->id }}"
+                         tabindex="-1"
+                         aria-hidden="true">
+
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        Confirmar eliminación
+                                    </h5>
+
+                                    <button type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="modal">
+                                    </button>
+                                </div>
+
+                                <div class="modal-body">
+                                    ¿Seguro que querés eliminar el perfume
+                                    <strong>{{ $perfume->nombre }}</strong>?
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button"
+                                            class="btn btn-secondary"
+                                            data-bs-dismiss="modal">
+                                        Cancelar
+                                    </button>
+
+                                    <form action="{{ route('perfumes.destroy', $perfume->id) }}"
+                                          method="POST">
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button type="submit"
+                                                class="btn btn-danger">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+                <!-- Fin modales eliminar -->
+
+                <!-- Cards mobile -->
+                <div class="d-block d-md-none">
+                    @foreach ($perfumes as $perfume)
+                        <div class="card mb-3 shadow-sm border-0">
+                            <div class="card-body">
+
+                                <div class="d-flex align-items-center mb-3">
+
+                                    @if($perfume->imagen_url)
+                                        <img src="{{ $perfume->imagen_url }}"
+                                             alt="{{ $perfume->nombre }}"
+                                             class="rounded me-3"
+                                             style="width: 70px; height: 70px; object-fit: cover;">
+                                    @endif
+
+                                    <div>
+                                        <h5 class="mb-1">
+                                            {{ $perfume->nombre }}
+                                        </h5>
+
+                                        <small class="text-muted">
+                                            {{ $perfume->marca }}
+                                        </small>
+                                    </div>
+
+                                </div>
+
+                                <div class="mb-2">
+                                    @if($perfume->genero == 'M')
+                                        <span class="badge bg-primary">
+                                            Masculino
+                                        </span>
+                                    @elseif($perfume->genero == 'F')
+                                        <span class="badge bg-danger">
+                                            Femenino
+                                        </span>
+                                    @else
+                                        <span class="badge bg-info">
+                                            Unisex
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <div class="mb-2">
+                                    <strong>Precio:</strong>
+
+                                    <br>
+
+                                    ${{ number_format($perfume->precio_minimo, 2, ',', '.') }}
+                                    -
+                                    ${{ number_format($perfume->precio_maximo, 2, ',', '.') }}
+
+                                    @if($perfume->variantes->contains(fn($v) => $v->tiene_descuento))
+                                        <br>
+
+                                        <span class="badge bg-danger mt-1">
+                                            <i class="fas fa-tag me-1"></i>
+                                            Con descuento
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <div class="mb-3">
+                                    <strong>Stock:</strong>
+
+                                    <br>
+
+                                    @if($perfume->stock_total > 0)
+                                        <span class="badge bg-success">
+                                            {{ $perfume->stock_total }} unidades
+                                        </span>
+                                    @else
+                                        <span class="badge bg-danger">
+                                            Agotado
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <div class="d-grid gap-2">
+
+                                    <button type="button"
+                                            class="btn btn-outline-secondary btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#variantesModal{{ $perfume->id }}">
+                                        <i class="fas fa-boxes me-1"></i>
+                                        Ver variantes
+                                    </button>
+
+                                    <div class="btn-group">
+
+                                        <a href="{{ route('perfumes.show', $perfume->id) }}"
+                                           class="btn btn-outline-info btn-sm">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                        @auth
+                                            @if(Auth::user()->isAdmin())
+
+                                                <a href="{{ route('perfumes.edit', $perfume->id) }}"
+                                                   class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+
+                                                <button type="button"
+                                                        class="btn btn-outline-danger btn-sm"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#deletePerfumeModal{{ $perfume->id }}">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+
+                                            @endif
+                                        @endauth
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
-                <!-- Aquí iría la paginación -->
+
             @endif
         </div>
+
         <div class="card-footer text-muted">
             Total de registros: {{ $perfumes->count() }}
         </div>
+
     </div>
 @endsection

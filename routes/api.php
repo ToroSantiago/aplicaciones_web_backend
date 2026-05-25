@@ -1,0 +1,51 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\PerfumeApiController;
+use App\Http\Controllers\Api\VentaApiController;
+use App\Http\Controllers\MercadoPagoController;
+use App\Http\Controllers\Api\UsuarioApiController;
+
+// Rutas específicas PRIMERO
+Route::get('/all', [PerfumeApiController::class, 'all']); // Lista todos
+Route::get('/paginated', [PerfumeApiController::class, 'paginated']); // Con paginación
+Route::get('/genero/{genero}', [PerfumeApiController::class, 'byGenero']); // Filtrar por género
+
+// Rutas para variantes específicas
+Route::get('/{perfume}/variantes/{variante}', [PerfumeApiController::class, 'showVariante']);
+Route::patch('/{perfume}/variantes/{variante}/stock', [PerfumeApiController::class, 'updateStock']);
+
+// Ruta de compra (importante que esté antes y sin conflictos)
+Route::post('/compra', [PerfumeApiController::class, 'compra']); // Comprar perfumes
+
+// Rutas base CRUD
+Route::get('/', [PerfumeApiController::class, 'index']); // Lista 5 perfumes
+Route::get('/{id}', [PerfumeApiController::class, 'show'])->where('id', '[0-9]+'); // Ver un perfume
+Route::post('/', [PerfumeApiController::class, 'store']); // Crear perfume
+Route::put('/{id}', [PerfumeApiController::class, 'update'])->where('id', '[0-9]+'); // Actualizar perfume
+Route::delete('/{id}', [PerfumeApiController::class, 'destroy'])->where('id', '[0-9]+'); // Eliminar perfume
+
+// NUEVAS RUTAS DE VENTAS
+Route::post('/ventas', [VentaApiController::class, 'store']); // Crear venta
+Route::get('/ventas/cliente/{email}', [VentaApiController::class, 'ventasPorCliente']); // Historial por cliente
+Route::get('/ventas/{id}', [VentaApiController::class, 'show'])->where('id', '[0-9]+'); // Ver detalle de venta
+
+// Mantener compatibilidad con el endpoint existente de compra
+Route::post('/perfumes/compra', [VentaApiController::class, 'compraLegacy']);
+
+// Ruta de integración con Mercado Pago
+Route::post('/checkout', [MercadoPagoController::class, 'createPaymentPreference']);
+
+// Rutas de autenticación (públicas)
+Route::post('/register', [UsuarioApiController::class, 'register']);
+Route::post('/login', [UsuarioApiController::class, 'login']);
+
+// Rutas protegidas con autenticación
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [UsuarioApiController::class, 'logout']);
+    Route::get('/user', [UsuarioApiController::class, 'me']);
+
+    // Historial de ventas del usuario logueado. Diferente de
+    // /ventas/cliente/{email} (público), este solo devuelve las propias.
+    Route::get('/mis-ventas', [VentaApiController::class, 'misVentas']);
+});

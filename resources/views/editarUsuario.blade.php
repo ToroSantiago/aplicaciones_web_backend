@@ -61,9 +61,29 @@
 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label class="form-label">Rol:</label>
-                        <input type="text" class="form-control" value="{{ $usuario->rol }}" disabled>
-                        <input type="hidden" name="rol" value="{{ $usuario->rol }}">
+                        <label for="rol" class="form-label">Rol:</label>
+
+                        <select class="form-select @error('rol') is-invalid @enderror" id="rol" name="rol" required>
+
+                        <option value="Cliente"
+                            {{ old('rol', $usuario->rol) == 'Cliente' ? 'selected' : '' }}>
+                            Cliente
+                        </option>
+
+                        <option value="Empleado"
+                            {{ old('rol', $usuario->rol) == 'Empleado' ? 'selected' : '' }}>
+                            Empleado
+                        </option>
+
+                        <option value="Administrador"
+                            {{ old('rol', $usuario->rol) == 'Administrador' ? 'selected' : '' }}>
+                            Administrador
+                        </option>
+                        </select>
+
+                        @error('rol')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="col-md-6">
