@@ -60,4 +60,37 @@ class UsuarioApiController extends Controller
             'message' => 'Login exitoso'
         ]);
     }
+
+    /**
+     * Devuelve los datos del usuario autenticado.
+     * Usado por el SPA para verificar que el token sigue siendo válido y
+     * para refrescar info del usuario en pantalla.
+     *
+     * GET /edp/user  (auth:sanctum)
+     */
+    public function me(Request $request)
+    {
+        return response()->json([
+            'usuario' => $request->user(),
+        ]);
+    }
+
+    /**
+     * Cierra la sesión actual revocando el token que vino en el header.
+     * Otros tokens del mismo usuario (si los hubiera) siguen vivos —
+     * solo se elimina el que se usó en esta request.
+     *
+     * POST /edp/logout  (auth:sanctum)
+     */
+    public function logout(Request $request)
+    {
+        $token = $request->user()?->currentAccessToken();
+        if ($token) {
+            $token->delete();
+        }
+
+        return response()->json([
+            'message' => 'Sesión cerrada correctamente',
+        ]);
+    }
 }

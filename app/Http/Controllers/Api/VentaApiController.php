@@ -208,6 +208,65 @@ class VentaApiController extends Controller
     }
 
     /**
+     * Historial de ventas del usuario autenticado.
+     *
+     * A diferencia de ventasPorCliente() (que es pública y deja consultar
+     * por cualquier email), este endpoint solo devuelve las ventas del
+     * usuario logueado. Pensado para la pantalla "Mis compras" del SPA.
+     *
+     * GET /edp/mis-ventas  (auth:sanctum)
+     */
+    public function misVentas(Request $request)
+    {
+        try {
+            $cliente = $request->user();
+
+            $ventas = Venta::with(['detalles.perfumeVariante.perfume'])
+                          ->where('usuario_id', $cliente->id)
+                          ->recientes()
+                          ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'cliente' => [
+                        'id'     => $cliente->id,
+                        'nombre' => $cliente->nombre . ' ' . $cliente->apellido,
+                        'email'  => $cliente->email,
+                    ],
+                    'ventas' => $ventas->map(function ($venta) {
+                        return [
+                            'id'             => $venta->id,
+                            'fecha'          => $venta->created_at->format('Y-m-d H:i:s'),
+                            'total'          => $venta->total,
+                            'estado'         => $venta->estado,
+                            'metodo_pago'    => $venta->metodo_pago,
+                            'cantidad_items' => $venta->cantidad_total_items,
+                            'items' => $venta->detalles->map(function ($detalle) {
+                                return [
+                                    'perfume'         => $detalle->perfumeVariante->perfume->nombre,
+                                    'marca'           => $detalle->perfumeVariante->perfume->marca,
+                                    'imagen'          => $detalle->perfumeVariante->perfume->imagen_url,
+                                    'volumen'         => $detalle->perfumeVariante->volumen,
+                                    'cantidad'       => $detalle->cantidad,
+                                    'precio_unitario' => $detalle->precio_unitario,
+                                    'subtotal'        => $detalle->subtotal,
+                                ];
+                            }),
+                        ];
+                    }),
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener tu historial de ventas',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Obtener detalle de una venta específica
      * GET /api/ventas/{id}
      */

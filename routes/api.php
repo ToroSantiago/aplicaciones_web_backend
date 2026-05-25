@@ -44,4 +44,8 @@ Route::post('/login', [UsuarioApiController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [UsuarioApiController::class, 'logout']);
     Route::get('/user', [UsuarioApiController::class, 'me']);
+
+    // Historial de ventas del usuario logueado. Diferente de
+    // /ventas/cliente/{email} (público), este solo devuelve las propias.
+    Route::get('/mis-ventas', [VentaApiController::class, 'misVentas']);
 });
