@@ -47,12 +47,20 @@ class MercadoPagoController extends Controller
             $payer = $request->input('payer');
             $itemsRequest = $request->input('items');
 
+            // Si el cliente vino con Bearer token, usamos ese usuario como
+            // dueño de la venta — ignoramos el payer.email para la asignación.
+            // El payer (name/surname/email) sigue siendo lo que mandamos a MP,
+            // pero NO determina a quién se le acredita la compra.
+            // Esto cierra el agujero de que cualquiera pueda asignar una venta
+            // a otra persona simplemente mandando su email.
+            $authUser = $request->user('sanctum');
+
             $externalReference = $this->generateExternalReference();
 
             // Toda la creación (validar stock + cliente + venta + detalles) en
             // una sola transacción. Si MP falla al crear la preferencia, hacemos
             // rollback y la venta nunca queda huérfana.
-            [$venta, $itemsServidor] = DB::transaction(function () use ($itemsRequest, $payer, $externalReference) {
+            [$venta, $itemsServidor] = DB::transaction(function () use ($itemsRequest, $payer, $authUser, $externalReference) {
                 // 1. Validar stock disponible (sin descontar). Recalculamos
                 //    precio_final server-side; nunca confiamos en unit_price del cliente.
                 $itemsServidor = [];
@@ -82,8 +90,11 @@ class MercadoPagoController extends Controller
                     ];
                 }
 
-                // 2. Resolver cliente (buscar por email; si no existe, crear).
-                $cliente = $this->resolveOrCreateCliente($payer);
+                // 2. Resolver cliente.
+                //    - Si hay usuario autenticado por Sanctum, ese es el dueño.
+                //    - Si no (checkout anónimo), caemos al método legacy que
+                //      busca por email del payer y, si no existe, lo crea.
+                $cliente = $authUser ?? $this->resolveOrCreateCliente($payer);
 
                 // 3. Crear Venta pendiente + Detalles
                 $venta = Venta::create([
