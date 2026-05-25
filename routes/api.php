@@ -9,8 +9,8 @@ use App\Http\Controllers\Api\UsuarioApiController;
 // JSON para notificar descuentos (público)
 Route::get('/descuentos', function () {
     $descuentos = \App\Models\Descuento::with([
-        'perfumeVariante',
-        'perfumeVariante.perfume'
+        'variantes',
+        'variantes.perfume'
     ])
     ->orderBy('created_at', 'desc')
     ->get();
