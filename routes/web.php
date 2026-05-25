@@ -10,20 +10,6 @@ use Inertia\Inertia;
 use App\Http\Controllers\EstadisticasController;
 use App\Http\Controllers\MercadoPagoController;
 
-Route::get('/api/descuentos', function () {
-    $descuentos = \App\Models\Descuento::with([
-        'perfumeVariante',
-        'perfumeVariante.perfume'
-    ])
-    ->orderBy('created_at', 'desc')
-    ->get();
-    
-    return response()->json([
-        'success' => true,
-        'data' => $descuentos
-    ]);
-});
-
 Route::middleware('web')->group(function () {
 
     // Ruta raíz

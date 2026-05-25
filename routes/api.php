@@ -6,6 +6,21 @@ use App\Http\Controllers\Api\VentaApiController;
 use App\Http\Controllers\MercadoPagoController;
 use App\Http\Controllers\Api\UsuarioApiController;
 
+// JSON para notificar descuentos (público)
+Route::get('/descuentos', function () {
+    $descuentos = \App\Models\Descuento::with([
+        'perfumeVariante',
+        'perfumeVariante.perfume'
+    ])
+    ->orderBy('created_at', 'desc')
+    ->get();
+    
+    return response()->json([
+        'success' => true,
+        'data' => $descuentos
+    ]);
+});
+
 // Rutas específicas PRIMERO
 Route::get('/all', [PerfumeApiController::class, 'all']); // Lista todos
 Route::get('/paginated', [PerfumeApiController::class, 'paginated']); // Con paginación
