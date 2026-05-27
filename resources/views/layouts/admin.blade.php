@@ -251,10 +251,13 @@
                         <form method="POST" action="{{ route('logout') }}" class="d-inline">
                             @csrf
                             <button
-                            type="submit"
-                            class="nav-link btn btn-link"
-                            style="text-decoration:none;"
-                            aria-label="Cerrar sesión">
+                                type="submit"
+                                class="nav-link btn btn-link"
+                                style="text-decoration:none;"
+                                aria-label="Cerrar sesión">
+                                <i class="fas fa-sign-out-alt me-1"></i>
+                                Cerrar sesión
+                            </button>
                         </form>
                     @else
                         <a class="nav-link" href="{{ route('login') }}">
