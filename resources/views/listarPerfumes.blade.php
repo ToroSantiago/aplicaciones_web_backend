@@ -76,6 +76,10 @@
                                             @if($perfume->imagen_url)
                                                 <img src="{{ $perfume->imagen_url }}"
                                                      alt="{{ $perfume->nombre }}"
+                                                     loading="lazy"
+                                                     decoding="async"
+                                                     width="50"
+                                                     height="50"
                                                      class="img-thumbnail"
                                                      style="width: 50px; height: 50px; object-fit: cover;">
                                             @else
@@ -406,8 +410,12 @@
                                     @if($perfume->imagen_url)
                                         <img src="{{ $perfume->imagen_url }}"
                                              alt="{{ $perfume->nombre }}"
+                                             loading="lazy"
+                                             decoding="async"
+                                             width="50"
+                                             height="50"
                                              class="rounded me-3"
-                                             style="width: 70px; height: 70px; object-fit: cover;">
+                                             style="object-fit: cover;">
                                     @endif
 
                                     <div>
