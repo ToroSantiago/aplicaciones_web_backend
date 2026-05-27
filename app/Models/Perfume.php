@@ -50,7 +50,9 @@ class Perfume extends Model
      */
     public function getHayStockAttribute()
     {
-        return $this->variantes()->where('stock', '>', 0)->exists();
+        return $this->variantes->contains(
+            fn ($v) => $v->stock > 0
+        );
     }
 
     /**
