@@ -187,7 +187,14 @@
         </a>
 
         <!-- HAMBURGUESA -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Abrir menú de navegación">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -243,9 +250,11 @@
                     @auth
                         <form method="POST" action="{{ route('logout') }}" class="d-inline">
                             @csrf
-                            <button type="submit" class="nav-link btn btn-link" style="text-decoration:none;">
-                                <i class="fas fa-sign-out-alt me-1"></i>Cerrar sesión
-                            </button>
+                            <button
+                            type="submit"
+                            class="nav-link btn btn-link"
+                            style="text-decoration:none;"
+                            aria-label="Cerrar sesión">
                         </form>
                     @else
                         <a class="nav-link" href="{{ route('login') }}">
@@ -289,7 +298,7 @@
                         @if(Auth::user()->isAdmin())
                             <li class="nav-item">
                                 <a class="sidebar-link" href="{{ route('usuarios.index') }}">
-                                    <i class="fas fa-users me-2"></i>Usuarios
+                                <i class="fas fa-users me-2" aria-hidden="true"></i>Usuarios
                                 </a>
                             </li>
 

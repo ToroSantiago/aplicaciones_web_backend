@@ -32,10 +32,12 @@
                                class="form-control"
                                placeholder="Buscar..."
                                id="searchInput">
-
-                        <button class="btn btn-primary" type="button">
-                            <i class="fas fa-search"></i>
-                        </button>
+                               <button
+                                    class="btn btn-primary"
+                                    type="button"
+                                    aria-label="Buscar perfumes">
+                                    <i class="fas fa-search" aria-hidden="true"></i>
+                                </button>
                     </div>
                 </div>
             </div>
