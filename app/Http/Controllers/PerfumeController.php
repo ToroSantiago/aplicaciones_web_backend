@@ -9,11 +9,25 @@ use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class PerfumeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $perfumes = Perfume::with('variantes.descuentos')->get();
+        $q = trim((string) $request->query('q', ''));
 
-        return view('listarPerfumes', compact('perfumes'));
+        $perfumes = Perfume::with('variantes.descuentos')
+            // Búsqueda en nombre, marca y descripción. Insensible a may/mínusculas.
+            ->when($q !== '', function ($query) use ($q) {
+                $like = '%' . str_replace(['%', '_'], ['\%', '\_'], $q) . '%';
+                $query->where(function ($w) use ($like) {
+                    $w->where('nombre', 'ILIKE', $like)
+                      ->orWhere('marca', 'ILIKE', $like)
+                      ->orWhere('descripcion', 'ILIKE', $like);
+                });
+            })
+            ->orderBy('nombre')
+            ->paginate(15)
+            ->withQueryString(); // conserva ?q=... en los links de paginación
+
+        return view('listarPerfumes', compact('perfumes', 'q'));
     }
 
     public function create()
