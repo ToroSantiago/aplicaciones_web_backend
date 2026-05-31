@@ -10,7 +10,6 @@ use Inertia\Inertia;
 use App\Http\Controllers\EstadisticasController;
 use App\Http\Controllers\MercadoPagoController;
 
-
 Route::middleware('web')->group(function () {
 
     // Ruta raíz

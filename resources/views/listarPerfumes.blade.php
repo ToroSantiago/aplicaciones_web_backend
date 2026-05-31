@@ -32,10 +32,12 @@
                                class="form-control"
                                placeholder="Buscar..."
                                id="searchInput">
-
-                        <button class="btn btn-primary" type="button">
-                            <i class="fas fa-search"></i>
-                        </button>
+                               <button
+                                    class="btn btn-primary"
+                                    type="button"
+                                    aria-label="Buscar perfumes">
+                                    <i class="fas fa-search" aria-hidden="true"></i>
+                                </button>
                     </div>
                 </div>
             </div>
@@ -76,6 +78,10 @@
                                             @if($perfume->imagen_url)
                                                 <img src="{{ $perfume->imagen_url }}"
                                                      alt="{{ $perfume->nombre }}"
+                                                     loading="lazy"
+                                                     decoding="async"
+                                                     width="50"
+                                                     height="50"
                                                      class="img-thumbnail"
                                                      style="width: 50px; height: 50px; object-fit: cover;">
                                             @else
@@ -406,8 +412,12 @@
                                     @if($perfume->imagen_url)
                                         <img src="{{ $perfume->imagen_url }}"
                                              alt="{{ $perfume->nombre }}"
+                                             loading="lazy"
+                                             decoding="async"
+                                             width="50"
+                                             height="50"
                                              class="rounded me-3"
-                                             style="width: 70px; height: 70px; object-fit: cover;">
+                                             style="object-fit: cover;">
                                     @endif
 
                                     <div>

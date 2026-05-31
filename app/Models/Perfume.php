@@ -34,7 +34,7 @@ class Perfume extends Model
      */
     public function getPrecioMinimoAttribute()
     {
-        return $this->variantes()->min('precio') ?? 0;
+        return $this->variantes->min('precio') ?? 0;
     }
 
     /**
@@ -42,7 +42,7 @@ class Perfume extends Model
      */
     public function getPrecioMaximoAttribute()
     {
-        return $this->variantes()->max('precio') ?? 0;
+        return $this->variantes->max('precio') ?? 0;
     }
 
     /**
@@ -50,7 +50,9 @@ class Perfume extends Model
      */
     public function getHayStockAttribute()
     {
-        return $this->variantes()->where('stock', '>', 0)->exists();
+        return $this->variantes->contains(
+            fn ($v) => $v->stock > 0
+        );
     }
 
     /**
@@ -58,6 +60,6 @@ class Perfume extends Model
      */
     public function getStockTotalAttribute()
     {
-        return $this->variantes()->sum('stock');
+        return $this->variantes->sum('stock');
     }
 }
