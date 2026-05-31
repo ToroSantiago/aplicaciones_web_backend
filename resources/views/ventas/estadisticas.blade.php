@@ -18,7 +18,7 @@
     <!-- Filtro de fechas -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('ventas.estadisticas') }}">
+            <form method="GET" action="">
                 <div class="row g-3 align-items-end">
 
                     <div class="col-md-4">

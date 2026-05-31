@@ -12,24 +12,58 @@
 
     <div class="card">
         <div class="card-header">
-            <div class="row align-items-center">
-                <div class="col">
+            <div class="row align-items-center g-2">
+                <div class="col-12 col-md">
                     <h5 class="mb-0">Lista de Usuarios</h5>
                 </div>
-                <div class="col-auto">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Buscar..." id="searchInput">
-                        <button class="btn btn-primary" type="button">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
+                <div class="col-12 col-md-auto">
+                    {{-- action="" envía al URL actual — evita mixed-content
+                         warning del navegador cuando route() genera http://
+                         detrás del proxy HTTPS de Vercel. --}}
+                    <form method="GET" action="" class="d-flex gap-2 flex-wrap">
+                        {{-- Filtro por rol --}}
+                        <select name="rol" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">Todos los roles</option>
+                            @foreach(['Cliente', 'Empleado', 'Administrador'] as $opt)
+                                <option value="{{ $opt }}" {{ ($rol ?? '') === $opt ? 'selected' : '' }}>
+                                    {{ $opt }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        {{-- Buscador --}}
+                        <div class="input-group input-group-sm">
+                            <input type="text"
+                                   name="q"
+                                   class="form-control"
+                                   placeholder="Buscar por nombre, email, username..."
+                                   value="{{ $q ?? '' }}"
+                                   id="searchInput">
+                            <button class="btn btn-primary" type="submit" aria-label="Buscar usuarios">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            @if(!empty($q) || !empty($rol))
+                                <a href="{{ route('usuarios.index') }}"
+                                   class="btn btn-outline-secondary"
+                                   title="Limpiar filtros">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            @endif
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
         <div class="card-body">
             @if($usuarios->isEmpty())
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>No hay usuarios registrados.
+                    <i class="fas fa-info-circle me-2"></i>
+                    @if(!empty($q) || !empty($rol))
+                        No se encontraron usuarios con los filtros aplicados.
+                        <a href="{{ route('usuarios.index') }}">Limpiar filtros</a>.
+                    @else
+                        No hay usuarios registrados.
+                    @endif
                 </div>
             @else
                 <div class="table-responsive d-none d-md-block">
@@ -249,8 +283,21 @@
 
         </div>
 
+        {{-- Paginación (no renderiza nada si no hay resultados) --}}
+        @if(!$usuarios->isEmpty())
+            <div class="d-flex justify-content-center my-3">
+                {{ $usuarios->links() }}
+            </div>
+        @endif
+
         <div class="card-footer text-muted">
-            Total de registros: {{ $usuarios->count() }}
+            @if(!empty($q) || !empty($rol))
+                Mostrando {{ $usuarios->count() }} de {{ $usuarios->total() }} usuarios filtrados
+                @if(!empty($q)) para "<strong>{{ $q }}</strong>"@endif
+                @if(!empty($rol)) con rol <strong>{{ $rol }}</strong>@endif
+            @else
+                Mostrando {{ $usuarios->count() }} de {{ $usuarios->total() }} usuarios
+            @endif
         </div>
     </div>
 @endsection

@@ -10,10 +10,31 @@ use Illuminate\Validation\Rules\Password;
 class UsuarioController extends Controller
 {
     //Mostrar listado de usuarios (solo para admin)
-    public function index()
+    public function index(Request $request)
     {
-        $usuarios = Usuario::all();
-        return view('usuarios.index', compact('usuarios'));
+        $q   = trim((string) $request->query('q', ''));
+        $rol = $request->query('rol', '');
+
+        $usuarios = Usuario::query()
+            // Búsqueda en nombre, apellido, email o username.
+            ->when($q !== '', function ($query) use ($q) {
+                $like = '%' . str_replace(['%', '_'], ['\%', '\_'], $q) . '%';
+                $query->where(function ($w) use ($like) {
+                    $w->where('nombre', 'ILIKE', $like)
+                      ->orWhere('apellido', 'ILIKE', $like)
+                      ->orWhere('email', 'ILIKE', $like)
+                      ->orWhere('username', 'ILIKE', $like);
+                });
+            })
+            // Filtro por rol exacto.
+            ->when(in_array($rol, ['Cliente', 'Empleado', 'Administrador'], true), function ($query) use ($rol) {
+                $query->where('rol', $rol);
+            })
+            ->orderBy('nombre')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('usuarios.index', compact('usuarios', 'q', 'rol'));
     }
 
     //Formulario para crear usuario

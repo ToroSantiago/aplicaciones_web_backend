@@ -27,18 +27,28 @@
                 </div>
 
                 <div class="col-12 col-md-auto">
-                    <div class="input-group">
+                    {{-- action="" envía al URL actual con los nuevos params.
+                         Evita que route() genere http:// detrás del proxy
+                         de Vercel y que el navegador muestre el warning de
+                         "formulario no es seguro". --}}
+                    <form method="GET" action="" class="input-group">
                         <input type="text"
+                               name="q"
                                class="form-control"
-                               placeholder="Buscar..."
+                               placeholder="Buscar por nombre, marca, descripción..."
+                               value="{{ $q ?? '' }}"
                                id="searchInput">
-                               <button
-                                    class="btn btn-primary"
-                                    type="button"
-                                    aria-label="Buscar perfumes">
-                                    <i class="fas fa-search" aria-hidden="true"></i>
-                                </button>
-                    </div>
+                        <button class="btn btn-primary" type="submit" aria-label="Buscar perfumes">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                        </button>
+                        @if(!empty($q))
+                            <a href="{{ route('perfumes.index') }}"
+                               class="btn btn-outline-secondary"
+                               title="Limpiar búsqueda">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        @endif
+                    </form>
                 </div>
             </div>
         </div>
@@ -47,7 +57,12 @@
             @if($perfumes->isEmpty())
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
-                    No hay perfumes registrados.
+                    @if(!empty($q))
+                        No se encontraron perfumes para "<strong>{{ $q }}</strong>".
+                        <a href="{{ route('perfumes.index') }}">Limpiar búsqueda</a>.
+                    @else
+                        No hay perfumes registrados.
+                    @endif
                 </div>
             @else
 
@@ -527,11 +542,20 @@
                     @endforeach
                 </div>
 
+                {{-- Paginación --}}
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $perfumes->links() }}
+                </div>
             @endif
         </div>
 
         <div class="card-footer text-muted">
-            Total de registros: {{ $perfumes->count() }}
+            @if(!empty($q))
+                Mostrando {{ $perfumes->count() }} de {{ $perfumes->total() }} resultados para
+                "<strong>{{ $q }}</strong>"
+            @else
+                Mostrando {{ $perfumes->count() }} de {{ $perfumes->total() }} perfumes
+            @endif
         </div>
 
     </div>
