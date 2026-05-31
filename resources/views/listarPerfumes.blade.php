@@ -27,7 +27,11 @@
                 </div>
 
                 <div class="col-12 col-md-auto">
-                    <form method="GET" action="{{ route('perfumes.index') }}" class="input-group">
+                    {{-- action="" envía al URL actual con los nuevos params.
+                         Evita que route() genere http:// detrás del proxy
+                         de Vercel y que el navegador muestre el warning de
+                         "formulario no es seguro". --}}
+                    <form method="GET" action="" class="input-group">
                         <input type="text"
                                name="q"
                                class="form-control"

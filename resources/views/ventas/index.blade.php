@@ -13,7 +13,7 @@
             <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros</h5>
         </div>
         <div class="card-body">
-            <form method="GET" action="{{ route('ventas.index') }}" id="filtrosForm">
+            <form method="GET" action="" id="filtrosForm">
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label for="cliente_id" class="form-label">Cliente</label>

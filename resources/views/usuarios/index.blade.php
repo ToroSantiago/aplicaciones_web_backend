@@ -17,7 +17,10 @@
                     <h5 class="mb-0">Lista de Usuarios</h5>
                 </div>
                 <div class="col-12 col-md-auto">
-                    <form method="GET" action="{{ route('usuarios.index') }}" class="d-flex gap-2 flex-wrap">
+                    {{-- action="" envía al URL actual — evita mixed-content
+                         warning del navegador cuando route() genera http://
+                         detrás del proxy HTTPS de Vercel. --}}
+                    <form method="GET" action="" class="d-flex gap-2 flex-wrap">
                         {{-- Filtro por rol --}}
                         <select name="rol" class="form-select form-select-sm" onchange="this.form.submit()">
                             <option value="">Todos los roles</option>
