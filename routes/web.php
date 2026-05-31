@@ -58,6 +58,10 @@ Route::middleware('web')->group(function () {
         // Ventas: lectura + estadísticas
         Route::get('ventas/estadisticas', [VentaController::class, 'estadisticas'])
             ->name('ventas.estadisticas');
+        // exportar tiene que ir ANTES de ventas/{venta} para que el wildcard
+        // no se lo trague pensando que 'exportar' es un ID.
+        Route::get('ventas/exportar', [VentaController::class, 'exportCsv'])
+            ->name('ventas.exportar');
         Route::get('ventas', [VentaController::class, 'index'])->name('ventas.index');
         Route::get('ventas/{venta}', [VentaController::class, 'show'])
             ->whereNumber('venta')

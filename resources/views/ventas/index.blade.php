@@ -3,8 +3,16 @@
 @section('title', 'Administrar Ventas')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h1 class="h2"><i class="fas fa-shopping-cart me-2"></i>Gestión de Ventas</h1>
+
+        {{-- Botón "Exportar CSV": linkea al endpoint con los mismos filtros
+             que tiene la URL actual, así el CSV refleja lo que el admin ve. --}}
+        <a href="{{ route('ventas.exportar', request()->query()) }}"
+           class="btn btn-success"
+           title="Descargar las ventas filtradas en un CSV (compatible con Excel)">
+            <i class="fas fa-file-csv me-2"></i>Exportar CSV
+        </a>
     </div>
 
     <!-- Filtros -->

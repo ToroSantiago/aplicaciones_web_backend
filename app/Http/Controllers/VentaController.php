@@ -14,19 +14,90 @@ class VentaController extends Controller
      */
     public function index(Request $request)
     {
+        $ventas = $this->buildVentasQuery($request)
+            ->recientes()
+            ->paginate(20)
+            ->withQueryString();
+
+        $clientes = Usuario::where('rol', 'Cliente')->orderBy('nombre')->get();
+
+        return view('ventas.index', compact('ventas', 'clientes'));
+    }
+
+    /**
+     * Exportar las ventas filtradas a CSV.
+     *
+     * Usa el mismo set de filtros que index() para que el admin baje
+     * exactamente lo que está viendo en pantalla. Stream + chunks para
+     * que escale sin cargar todo en memoria.
+     */
+    public function exportCsv(Request $request)
+    {
+        $query = $this->buildVentasQuery($request)->recientes();
+
+        $nombreArchivo = 'ventas-' . now()->format('Ymd-His') . '.csv';
+
+        return response()->streamDownload(function () use ($query) {
+            $out = fopen('php://output', 'w');
+
+            // BOM UTF-8: Excel español lo necesita para mostrar bien los acentos.
+            fwrite($out, "\xEF\xBB\xBF");
+
+            // Cabecera. Usamos ';' como separator porque es el default que Excel
+            // español espera al abrir con doble click. Para Excel inglés
+            // también funciona si se importa desde "Datos → Desde texto".
+            fputcsv($out, [
+                'ID',
+                'Fecha',
+                'Cliente',
+                'Email',
+                'Items',
+                'Total',
+                'Estado',
+                'Método de pago',
+            ], ';');
+
+            // Procesamos en lotes de 500 para no agotar memoria si hay muchas ventas.
+            $query->chunk(500, function ($ventas) use ($out) {
+                foreach ($ventas as $venta) {
+                    fputcsv($out, [
+                        $venta->id,
+                        $venta->created_at->format('d/m/Y H:i'),
+                        $venta->cliente_nombre_completo,
+                        $venta->usuario?->email ?? '',
+                        $venta->cantidad_total_items,
+                        // Excel español espera coma como decimal.
+                        number_format((float) $venta->total, 2, ',', '.'),
+                        ucfirst($venta->estado),
+                        $venta->metodo_pago ?? '',
+                    ], ';');
+                }
+            });
+
+            fclose($out);
+        }, $nombreArchivo, [
+            'Content-Type'  => 'text/csv; charset=UTF-8',
+            'Cache-Control' => 'no-store, no-cache',
+        ]);
+    }
+
+    /**
+     * Construye la query base de ventas aplicando los filtros del request.
+     * Compartido entre index() y exportCsv() para que ambos respeten
+     * exactamente los mismos criterios.
+     */
+    private function buildVentasQuery(Request $request)
+    {
         $query = Venta::with(['usuario', 'detalles.perfumeVariante.perfume']);
 
-        // Filtro por cliente
         if ($request->filled('cliente_id')) {
             $query->where('usuario_id', $request->cliente_id);
         }
 
-        // Filtro por estado
         if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
         }
 
-        // Filtro por fecha
         if ($request->filled('fecha_desde')) {
             $query->whereDate('created_at', '>=', $request->fecha_desde);
         }
@@ -35,26 +106,22 @@ class VentaController extends Controller
             $query->whereDate('created_at', '<=', $request->fecha_hasta);
         }
 
-        // Búsqueda general
         if ($request->filled('buscar')) {
             $buscar = $request->buscar;
-            $query->where(function($q) use ($buscar) {
-                $q->whereHas('usuario', function($query) use ($buscar) {
-                    $query->where('nombre', 'LIKE', "%{$buscar}%")
-                          ->orWhere('apellido', 'LIKE', "%{$buscar}%")
-                          ->orWhere('email', 'LIKE', "%{$buscar}%");
+            $query->where(function ($q) use ($buscar) {
+                $q->whereHas('usuario', function ($query) use ($buscar) {
+                    $query->where('nombre', 'ILIKE', "%{$buscar}%")
+                          ->orWhere('apellido', 'ILIKE', "%{$buscar}%")
+                          ->orWhere('email', 'ILIKE', "%{$buscar}%");
                 })
-                ->orWhereHas('detalles.perfumeVariante.perfume', function($query) use ($buscar) {
-                    $query->where('nombre', 'LIKE', "%{$buscar}%")
-                          ->orWhere('marca', 'LIKE', "%{$buscar}%");
+                ->orWhereHas('detalles.perfumeVariante.perfume', function ($query) use ($buscar) {
+                    $query->where('nombre', 'ILIKE', "%{$buscar}%")
+                          ->orWhere('marca', 'ILIKE', "%{$buscar}%");
                 });
             });
         }
 
-        $ventas = $query->recientes()->paginate(20);
-        $clientes = Usuario::where('rol', 'Cliente')->orderBy('nombre')->get();
-
-        return view('ventas.index', compact('ventas', 'clientes'));
+        return $query;
     }
 
     /**
