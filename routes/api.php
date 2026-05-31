@@ -59,6 +59,9 @@ Route::post('/login', [UsuarioApiController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [UsuarioApiController::class, 'logout']);
     Route::get('/user', [UsuarioApiController::class, 'me']);
+    // Edición del propio perfil. Cambios sensibles (email, password)
+    // requieren password_actual en el body.
+    Route::put('/me', [UsuarioApiController::class, 'updateMe']);
 
     // Historial de ventas del usuario logueado. Diferente de
     // /ventas/cliente/{email} (público), este solo devuelve las propias.
